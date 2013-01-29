@@ -1,0 +1,10 @@
+{
+    "metrics": [
+        {
+            "display": "Oauth",
+            "measure": "uptime",
+            "source": "oauth.redirect.redirect",
+            "status-levels": {"green": 99, "yellow": 90, "red": 80}
+        }
+    ]
+}

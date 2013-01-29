@@ -1,0 +1,16 @@
+{
+    "metrics": [
+        {
+            "display": "Http",
+            "measure": "uptime",
+            "source": "http.curl.curl",
+            "status-levels": {"green": 99, "yellow": 98, "red": 90}
+        },
+        {
+            "display": "Http-restart",
+            "measure": "uptime",
+            "source": "http.recurl.clone",
+            "status-levels": {"green": 99, "yellow": 98, "red": 90}
+        }
+    ]
+}

@@ -12,7 +12,6 @@ ENV["SCRIPT"]             ||= File.expand_path($0) # $FERRET_DIR/tests/git/push 
 
 ENV["TEMP_DIR"]           ||= Dir.mktmpdir
 ENV["FREQ"].to_i          ||= 30.to_s
-ENV["INTERVAL"]           ||= 240.to_s #how long to track for in seconds when doing math (time-series window)
 Thread.current[:xid]        = SecureRandom.hex(4)
 ENV["SERVICE_LOG_NAME"]   ||= "#{ENV["APP"]}.#{ENV["NAME"]}" # e.g. ferret-noah.git-push #slave app name
 ENV["SERVICE_APP_NAME"]   ||= ENV["USER"] + "-" + ENV["SERVICE_LOG_NAME"].gsub(/[\._]/, '-') # e.g. ferret-noah-git-push #used for deploying slave app
@@ -55,28 +54,6 @@ def test_freq(freq)
   ENV["FREQ"] = freq.to_s
 end
 
-def uses_app(opts={})
-  ENV["APP_DIR"] = opts[:path]
-  ENV["STACK"] = opts[:stack] || "cedar"
-
-  log fn: :uses_app, name: ENV["SERVICE_APP_NAME"], at: :enter
-
-  bash(retry: 2, name: :create, stdin: <<-'EOSTDIN')
-    heroku apps:delete $SERVICE_APP_NAME --confirm $SERVICE_APP_NAME           
-    heroku apps:create $SERVICE_APP_NAME -s $STACK                    \
-    && heroku manager:transfer --app $SERVICE_APP_NAME --to $ORG
-  EOSTDIN
-
-  return if opts[:empty]
-
-  bash(retry: 2, name: :release, stdin: <<-'EOSTDIN')
-    cd $APP_DIR                                                       \
-    && git init && git add * && git commit -m "init" && git push  git@heroku.com:${SERVICE_APP_NAME}.git                              \
-    && heroku scale web=1 --app $SERVICE_APP_NAME                     \
-    && cd $FERRET_DIR
-  EOSTDIN
-end
-
 def run_interval(interval, &block)
   $threads << Thread.new do
     loop {
@@ -102,28 +79,15 @@ def run_every_time(&block)
 end
 
 def bash(opts={})
-
   opts[:bash] = opts[:stdin]
   test(opts)
 end
 
 def test(opts={}, &blk) 
-  
   opts.rmerge!(name: "test", retry: 1, pattern: nil, status: 0, timeout: 180)
-
-  Thread.current[:times]     ||= Array.new
-  Thread.current[:uptimes]   ||= Array.new
-  Thread.current[:uavarages] ||= Array.new
-  Thread.current[:tavarages] ||= Array.new 
-  Thread.current[:failcount] ||= 0
-  
-  times = Thread.current[:times]
-  uptimes = Thread.current[:uptimes]
   script = ENV["SCRIPT"].chomp(File.extname(ENV["SCRIPT"]))           # strip extension
   script = script.split("/").last(2).join("/")                        # e.g. git/push or unit/test_ferret
-  ENV["TARGET_APP"] = "#{ENV["APP"]}-#{script}".gsub(/[\/_]/, "-")    # e.g. ferret-git-push or ferret-unit-test-ferret
-  source = "\"#{script}.#{opts[:name]}\"".gsub(/\//, ".").gsub(/_/, "-")  # e.g. git.push.test
-  Thread.current[:source] = source.gsub("\"","")
+  
   begin
     Timeout.timeout(opts[:timeout]) do
       opts[:retry].times do |i|
@@ -162,18 +126,11 @@ def test(opts={}, &blk)
           return success # break out of retry loop
         else
           out.each_line { |l| log source: source, i: i, at: :failure, out: "'#{l.strip}'" }
-
-          end
-          # only measure last failure
-          if i == opts[:retry] - 1
+        end
+          if i == opts[:retry] - 1  # only measure last failure
             log source: source, i: i, status: status, measure: "failure"
             log source: source, i: i, val: 0, measure: "uptime"
-            Thread.current[:failcount] = Thread.current[:failcount]+1
-          if Thread.current[:failcount] > 5
-         else
-            log source: source, i: i, status: status
-          end
-          log source: source, i: i, at: :return, val: "%0.4f" % (Time.now - start)
+            log source: source, i: i, at: :return, val: "%0.4f" % (Time.now - start)
         end
       end
     end

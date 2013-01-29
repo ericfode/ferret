@@ -1,0 +1,11 @@
+#!/usr/bin/env ruby
+require_relative "../../lib/ferret"
+
+run_every_time do
+  bash(name: :resolve, stdin: <<-'EOF')
+    nc redis-19595.us-east-1-4.1.ec2.garantiadata.com 19595 -w 1
+  EOF
+end
+
+
+run time:20

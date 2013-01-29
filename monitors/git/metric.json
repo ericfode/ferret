@@ -1,0 +1,10 @@
+{
+    "metrics": [
+        {
+            "display": "git",
+            "measure": "uptime",
+            "source": "git.clone.clone",
+            "status-levels": {"green": 90, "yellow": 80, "red": 60}
+        }
+    ]
+}
