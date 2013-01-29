@@ -88,7 +88,7 @@ def test(opts={}, &blk)
   script = ENV["SCRIPT"].chomp(File.extname(ENV["SCRIPT"]))           # strip extension
   script = script.split("/").last(2).join("/")                        # e.g. git/push or unit/test_ferret
   source = "\"#{script}.#{opts[:name]}\"".gsub(/\//, ".").gsub(/_/, "-") 
-  
+
   begin
     Timeout.timeout(opts[:timeout]) do
       opts[:retry].times do |i|
