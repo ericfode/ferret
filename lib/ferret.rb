@@ -31,10 +31,10 @@ trap("EXIT") do
   FileUtils.rm_rf ENV["TEMP_DIR"]
 end
 
-
 class Hash
   def rmerge!(h)
     replace(h.merge(self))
+  
   end
 end
 
@@ -87,6 +87,7 @@ def test(opts={}, &blk)
   opts.rmerge!(name: "test", retry: 1, pattern: nil, status: 0, timeout: 180)
   script = ENV["SCRIPT"].chomp(File.extname(ENV["SCRIPT"]))           # strip extension
   script = script.split("/").last(2).join("/")                        # e.g. git/push or unit/test_ferret
+  source = "\"#{script}.#{opts[:name]}\"".gsub(/\//, ".").gsub(/_/, "-") 
   
   begin
     Timeout.timeout(opts[:timeout]) do

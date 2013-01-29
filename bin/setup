@@ -6,6 +6,10 @@ run "Installing heroku plugins..." <<'EOF'
   heroku plugins:install git@github.com:heroku/heroku-orgs.git
 EOF
 
+run "Updating Procfile..." <<'EOF'
+  bin/create_proc.sh monitors
+EOF
+
 run "Managing user..." <<'EOF'
   export $(cat .env)
   unset HEROKU_API_KEY
@@ -38,7 +42,7 @@ run "Creating monitor app..." <<'EOF'
 
   set -x
   heroku create $APP --org $ORG
-  heroku config:set APP=$APP HEROKU_API_KEY=$HEROKU_API_KEY --app $APP
+  heroku config:set FREQ=20 APP=$APP HEROKU_API_KEY=$HEROKU_API_KEY --app $APP
   heroku build -b https://github.com/nzoschke/buildpack-ferret.git -r
 EOF
 
@@ -49,4 +53,8 @@ run "Joining all apps..." <<'EOF'
   for APP in $(heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1); do
     heroku join --app $APP
   done
+EOF
+
+run "Scaling all procs..." <<'EOF'
+  bin/scale.sh monitors 1
 EOF
