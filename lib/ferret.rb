@@ -16,6 +16,21 @@ class Ferret
     else
       sleep opts[:time]
     end
+<<<<<<< HEAD
+  end
+
+  def run_interval(interval, &block)
+    @lock    ||= Mutex.new
+    @threads ||= []
+    @threads << Thread.new do
+      loop do
+        @lock.synchronize do
+          Thread.current[:xid] = SecureRandom.hex(4)
+          block.call
+        end
+        sleep interval * ENV["FREQ"].to_i
+      end
+=======
   end
 
   def run_interval(interval, &block)
@@ -32,6 +47,31 @@ class Ferret
     end
   end
 
+  def run_every_time(&block)
+    run_interval(1,block)
+  end
+
+  def bash(opts={})
+    opts[:bash_script] = opts[:stdin]
+    test(opts)
+  end
+
+  def log_uptime(source, i, time, up)
+    if up 
+      measure = "success"
+      val = 100
+    else
+      measure = "failure"
+      val = 0
+>>>>>>> major recfactoring
+    end
+
+    log source: source, i: i, status: status, measure: measure
+    log source: source, i: i, val: val, measure: "uptime"
+    log source: source, i: i, at: :return, val: "%0.4f" % time, measure: "time"
+  end
+
+<<<<<<< HEAD
   def run_every_time(&block)
     run_interval(1,block)
   end
@@ -70,10 +110,28 @@ class Ferret
     { status: $?.exitstatus, out: r1.read }
   end
 
+=======
+  def self.run_bash_script(script) 
+    r0, w0 = IO.pipe
+    r1, w1 = IO.pipe
+    Thread.current[:tmp] = Dir.mktmpdir
+    Thread.current[:pid] = Process.spawn("bash", "--noprofile", "-s", chdir: Thread.current[:tmp], pgroup: 0, in: r0, out: w1, err: w1)
+
+    w0.write(script)
+    r0.close
+    w0.close
+
+    Process.wait(Thread.current[:pid])
+    w1.close
+    { status: $?.exitstatus, out: r1.read }
+  end
+
+>>>>>>> major recfactoring
   def self.run_ruby_script(&block)
     { status: (yield source) ? 0 : 1, out: "" }
   end
 
+<<<<<<< HEAD
   def self.check_success(result, status_match, pattern_match)
       success = result[:status] == status_match
       success &&= !!(result[:out] =~ pattern_match) if pattern_match
@@ -104,10 +162,30 @@ class Ferret
             return result
           end
         end
+=======
+
+  def self.getsource(name)
+    script = ENV["SCRIPT"].chomp(File.extname(ENV["SCRIPT"])).split("/").last(2).join("/")   # e.g. git/push or unit/test_ferret                    
+    "\"#{script}.#{name}\"".gsub(/\//, ".").gsub(/_/, "-") 
+  end
+
+  def test(opts={}, &blk) 
+    opts.rmerge!(name: "test", retry: 1, pattern: nil, status: 0, timeout: 180)
+    source = getsource(opts[:name])
+    begin
+      run_timeout_block(opts, source, opts[:status], opts[:retry], blk)
+    rescue Timeout::Error
+      log source: source, at: :timeout, val: opts[:timeout]
+      
+      if Thread.current[:pid]
+        Process.kill("INT", -Process.getpgid(Thread.current[:pid]))
+        Process.wait(Thread.current[:pid])
+>>>>>>> major recfactoring
       end
     end
   end
 
+<<<<<<< HEAD
 
   def getsource(name)
     script = ENV["SCRIPT"].chomp(File.extname(ENV["SCRIPT"])).split("/").last(2).join("/")   # e.g. git/push or unit/test_ferret                    
@@ -129,6 +207,8 @@ class Ferret
     end
   end
 
+=======
+>>>>>>> major recfactoring
   def log(data)
     Thread.current[:xid] ||= SecureRandom.hex(4)
     data.rmerge! xid: Thread.current[:xid]
@@ -201,4 +281,8 @@ class Ferret
       super opts
     end   
   end
+<<<<<<< HEAD
 end
+=======
+end
+>>>>>>> major recfactoring
