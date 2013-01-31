@@ -108,6 +108,7 @@ class Ferret
     end
   end
 
+
   def getsource(name)
     script = ENV["SCRIPT"].chomp(File.extname(ENV["SCRIPT"])).split("/").last(2).join("/")   # e.g. git/push or unit/test_ferret                    
     "\"#{script}.#{name}\"".gsub(/\//, ".").gsub(/_/, "-") 

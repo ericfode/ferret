@@ -20,4 +20,5 @@ class Ferret::BashTest < MiniTest::Unit::TestCase
       result = @f.run_bash_script('asdf')
       assert_equal result[:status], 127
   end 
+
 end
