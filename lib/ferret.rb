@@ -74,8 +74,41 @@ class Ferret
     { status: (yield source) ? 0 : 1, out: "" }
   end
 
+  def self.check_success(result, status_match, pattern_match)
+      success = result[:status] == status_match
+      success &&= !!(result[:out] =~ pattern_match) if pattern_match
+  end
 
-  def self.getsource(name)
+  def self.run_timeout_block(opts={}, monitor)
+    result = {}
+    Timeout.timeout(opts[:timeout]) do
+      trys.times do |i|
+        start = Time.now
+        log source: source, i: i, at: :enter
+
+        if monitor.script
+          result = run_bash_script opts[:bash_script]
+        else
+          result = run_ruby_script block
+        end
+        
+        check_success(result, status, opts[:pattern])
+
+        if success
+          log_uptime source, i, Time.now-start,success
+          return result # break out of retry loop
+        else
+          result.out.each_line { |l| log source: source, i: i, at: :failure, out: "'#{l.strip}'" }
+          if i == trys - 1  # only measure last failure
+            log_uptime source, i, Time.now-start,success
+            return result
+          end
+        end
+      end
+    end
+  end
+
+  def getsource(name)
     script = ENV["SCRIPT"].chomp(File.extname(ENV["SCRIPT"])).split("/").last(2).join("/")   # e.g. git/push or unit/test_ferret                    
     "\"#{script}.#{name}\"".gsub(/\//, ".").gsub(/_/, "-") 
   end
