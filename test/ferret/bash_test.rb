@@ -1,26 +1,23 @@
 require_relative "../test_helper.rb"
 
-class BashTest < MiniTest::Unit::TestCase
-  def setup
-
+class Ferret::BashTest < MiniTest::Unit::TestCase
+  def setup 
+    @f = Ferret.new
   end
-
   test "run simple script with exit status 0" do
-      result = run_bash_script('echo ""')
-      assert_equal result.status, 0
-      assert_equal result.out, ""
+      result = @f.run_bash_script('echo ""')
+      assert_equal result[:status], 0
+      assert_equal result[:out], "\n"
   end
 
   test "run simple script with output" do
-      result = run_bash_script('echo "test"')
-      assert_equal result.status, 0
-      assert_equal result.out, "test"
+      result = @f.run_bash_script('echo "test"')
+      assert_equal result[:status], 0
+      assert_equal result[:out], "test\n"
   end
 
-  test "run script with non 0 return" do
-      result = run_bash_script('return 1')
-      assert_equal result.status, 1
-      assert_equal result.out, ""
+  test "run script with invalid command" do
+      result = @f.run_bash_script('asdf')
+      assert_equal result[:status], 127
   end 
-
 end
