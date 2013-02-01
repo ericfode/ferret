@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+require_relative "../../lib/ferret"
+
+run_every_time do
+  bash(name: :curl, timeout: 3900, stdin: <<-'EOSH')
+    curl --fail https://$APP-apex.herokuapp.com -v
+  EOSH
+end
+
+run forever: true
