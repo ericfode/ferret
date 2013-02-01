@@ -6,14 +6,13 @@ echo Destroying monitor and service apps...
 (
   export $(cat .env)
   heroku destroy $APP-bamboo --confirm $APP-bamboo
-  heroku destroy $APP-apex   --confirm $APP-apex
   heroku destroy $APP-cedar  --confirm $APP-cedar
   heroku destroy $APP-cedar-endpoint --confirm $APP-cedar-endpoint
 
   for APP in $(heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1); do
     (
       set -x
-      heroku destroy $APP --confirm $APP
+      heroku destroy $APP
     )
     echo
   done

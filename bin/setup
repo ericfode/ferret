@@ -43,18 +43,10 @@ run "Creating canary endpoints" <<'EOF'
   heroku create --org $ORG -s bamboo $APP-bamboo --remote s
   heroku build services/http -r $APP-bamboo
   heroku scale web=3 --app $APP-bamboo
-  
-
-  heroku create --org $ORG -s bamboo $APP-apex --remote s
-  heroku build services/http -r $APP-apex
-  heroku scale web=3 --app $APP-apex
-  heroku domains:add $APP-apex.com
-  
 
   heroku create --org $ORG -s cedar $APP-cedar --remote s
   heroku build services/http -r $APP-cedar
   heroku scale web=3 --app $APP-cedar
-  
 
   heroku create --org $ORG -s cedar $APP-cedar-endpoint --remote s
   heroku build services/http -r $APP-cedar-endpoint
