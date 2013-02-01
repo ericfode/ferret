@@ -37,13 +37,38 @@ run "Creating service apps..." <<'EOF'
   git remote rm s
 EOF
 
+run "Creating canary endpoints" <<'EOF'
+  export $(cat .env)
+
+  heroku create --org $ORG -s bamboo $APP-bamboo --remote s
+  heroku build services/http -r $APP-bamboo
+  heroku scale web=3 --app $APP-bamboo
+
+  heroku create --org $ORG -s cedar $APP-cedar --remote s
+  heroku build services/http -r $APP-cedar
+  heroku scale web=3 --app $APP-cedar
+
+  heroku create --org $ORG -s cedar $APP-cedar-endpoint --remote s
+  heroku build services/http -r $APP-cedar-endpoint
+  heroku scale web=3 --app $APP-cedar-endpoint
+  heroku addons:add ssl:endpoint --app $APP-cedar-endpoint
+  heroku domains:add www.$APP-cedar-endpoint.com --app $APP-cedar-endpoint
+  openssl genrsa -out server.key 2048 $> /dev/null
+  openssl req -new -key server.key -out server.csr -batch -subj "/C=US/ST=CA/O=$ORG_NAME/CN=www.$APP-cedar-endpoint.com" &> /dev/null
+  openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt &> /dev/null
+  heroku certs:add server.crt server.key --app $APP-cedar-endpoint
+
+  rm server.*
+  git remote rm s
+EOF
+
 run "Creating monitor app..." <<'EOF'
   export $(cat .env)
 
   set -x
   heroku create $APP --org $ORG
   heroku config:set FREQ=20 APP=$APP HEROKU_API_KEY=$HEROKU_API_KEY --app $APP
-  heroku build -b https://github.com/nzoschke/buildpack-ferret.git -r
+  heroku build -b https://github.com/nzoschke/buildpack-ferret.git -r $APP
 EOF
 
 run "Joining all apps..." <<'EOF'
