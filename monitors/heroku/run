@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+require_relative "../../lib/ferret"
+
+run_every_time do
+  bash(name: :ls, pattern: /Running `ls` attached to terminal/, stdin: <<-EOF)
+    heroku run ls -a $APP-run
+  EOF
+end
+
+run forever: true

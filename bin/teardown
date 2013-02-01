@@ -11,6 +11,12 @@ echo Destroying monitor and service apps...
     heroku destroy $APP-cedar-$i  --confirm $APP-cedar-$i
     heroku destroy $APP-cedar-endpoint-$i --confirm $APP-cedar-endpoint-$i
   done
+  heroku destroy $APP-bamboo --confirm $APP-bamboo
+  heroku destroy $APP-cedar  --confirm $APP-cedar
+  heroku destroy $APP-cedar-endpoint --confirm $APP-cedar-endpoint
+  heroku destroy $APP-run --confirm $APP-run
+  heroku destroy $APP-addons --confirm $APP-addons
+
   for APP in $(heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1); do
     (
       set -x

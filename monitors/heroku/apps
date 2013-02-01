@@ -1,0 +1,14 @@
+#!/usr/bin/env ruby
+require_relative "../../lib/ferret"
+
+run_every_time do
+  bash(name: :create, pattern: /Creating #{ENV["APP"]}-apps/, stdin: <<-EOF)
+    heroku create $APP-apps
+  EOF
+
+  bash(name: :destroy, pattern: /Destroying #{ENV["APP"]}-apps/, stdin: <<-EOF)
+    heroku destroy $APP-apps --confirm $APP-apps
+  EOF
+end
+
+run forever: true
