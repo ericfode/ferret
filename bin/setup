@@ -80,6 +80,11 @@ run "Joining all apps..." <<'EOF'
   done
 EOF
 
+run "Adding drain..." <<'EOF'
+  export $(cat .env)
+  heroku drains:add $L2MET_URL
+EOF
+
 run "Scaling all procs..." <<'EOF'
   bin/scale.sh monitors 1
 EOF
