@@ -1,5 +1,11 @@
 #!/bin/bash
 source bin/ferret.sh
+[ -n "$APP" ]             || { echo "error: APP required"; exit 1; }
+[ -n "$HEROKU_API_KEY" ]  || { echo "error: HEROKU_API_KEY required"; exit 1; }
+[ -n "$HEROKU_USERNAME" ] || { echo "error: HEROKU_USERNAME required"; exit 1; }
+[ -n "$ORG" ]             || { echo "error: ORG required"; exit 1; }
+[ -n "$L2MET_URL" ]       || { echo "error: L2MET_URL required"; exit 1; }
+
 
 run "Installing heroku plugins..." <<'EOF'
   heroku plugins:install https://github.com/ddollar/heroku-anvil
