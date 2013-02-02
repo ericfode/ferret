@@ -2,11 +2,11 @@
 require_relative "../../lib/ferret"
 
 run_every_time do
-  bash(name: :add, pattern: /Adding heroku-postgresql:dev to #{ENV["APP"]}-addons... done/, stdin: <<-EOF)
+  bash(name: :add, pattern: /Adding heroku-postgresql:dev to #{ENV["APP"]}-addons/, stdin: <<-EOF)
     heroku addons:add heroku-postgresql:dev -a $APP-addons
   EOF
 
-  bash(name: :remove, pattern: /Removing heroku-postgresql:dev from #{ENV["APP"]}-addons... done/, stdin: <<-EOF)
+  bash(name: :remove, pattern: /Removing heroku-postgresql:dev from #{ENV["APP"]}-addons/, stdin: <<-EOF)
     heroku addons:remove heroku-postgresql:dev -a $APP-addons --confirm $APP-addons
   EOF
 end
