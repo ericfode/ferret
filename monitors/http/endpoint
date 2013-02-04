@@ -2,10 +2,19 @@
 require_relative "../../lib/ferret"
 
 run_every_time do
-  bash(name: :curl, timeout: 3900, stdin: <<-'EOSH')
-    ENDPOINT=$(curl -u ":$HEROKU_API_KEY" -s https://api.heroku.com/apps/$APP-cedar-endpoint/ssl-endpoints | grep cname | cut -d"\"" -f4)
-    curl -ik --fail https://$ENDPOINT -H "Host: www.${APP}-cedar-endpoint.com"
+  bash(name: :curl0, timeout: 3900, stdin: <<-'EOSH')
+    ENDPOINT=$(curl -u ":$HEROKU_API_KEY" -s https://api.heroku.com/apps/$APP-cedar-endpoint-0/ssl-endpoints | grep cname | cut -d"\"" -f4)
+    curl -ik --fail https://$ENDPOINT -H "Host: www.${APP}-cedar-endpoint-0.com"
   EOSH
+   bash(name: :curl1, timeout: 3900, stdin: <<-'EOSH')
+    ENDPOINT=$(curl -u ":$HEROKU_API_KEY" -s https://api.heroku.com/apps/$APP-cedar-endpoint-1/ssl-endpoints | grep cname | cut -d"\"" -f4)
+    curl -ik --fail https://$ENDPOINT -H "Host: www.${APP}-cedar-endpoint-1.com"
+  EOSH
+   bash(name: :curl2, timeout: 3900, stdin: <<-'EOSH')
+    ENDPOINT=$(curl -u ":$HEROKU_API_KEY" -s https://api.heroku.com/apps/$APP-cedar-endpoint-2/ssl-endpoints | grep cname | cut -d"\"" -f4)
+    curl -ik --fail https://$ENDPOINT -H "Host: www.${APP}-cedar-endpoint-2.com"
+  EOSH
+
 end
 
 run forever: true

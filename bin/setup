@@ -1,11 +1,13 @@
 #!/bin/bash
 source bin/ferret.sh
-[ -n "$APP" ]             || { echo "error: APP required"; exit 1; }
-[ -n "$HEROKU_API_KEY" ]  || { echo "error: HEROKU_API_KEY required"; exit 1; }
-[ -n "$HEROKU_USERNAME" ] || { echo "error: HEROKU_USERNAME required"; exit 1; }
-[ -n "$ORG" ]             || { echo "error: ORG required"; exit 1; }
-[ -n "$L2MET_URL" ]       || { echo "error: L2MET_URL required"; exit 1; }
-
+run "Testing env" <<'EOF'
+  export $(cat .env)
+  [ -n "$APP" ]             || { echo "error: APP required"; exit 1; }
+  [ -n "$HEROKU_API_KEY" ]  || { echo "error: HEROKU_API_KEY required"; exit 1; }
+  [ -n "$HEROKU_USERNAME" ] || { echo "error: HEROKU_USERNAME required"; exit 1; }
+  [ -n "$ORG" ]             || { echo "error: ORG required"; exit 1; }
+  [ -n "$L2MET_URL" ]       || { echo "error: L2MET_URL required"; exit 1; }
+EOF
 
 run "Installing heroku plugins..." <<'EOF'
   heroku plugins:install https://github.com/ddollar/heroku-anvil
@@ -35,7 +37,7 @@ run "Creating service apps..." <<'EOF'
     (
       set -x
       heroku create $SERVICE_APP --org $ORG --remote s $OPTS
-      heroku build $s -r $SERVICE_APP
+      heroku build $s -r $SERVICE_APP&
     )
     echo
   done
@@ -45,27 +47,37 @@ EOF
 
 run "Creating canary endpoints" <<'EOF'
   export $(cat .env)
-
-  heroku create --org $ORG -s bamboo $APP-bamboo --remote s
-  heroku build services/http -r $APP-bamboo
-  heroku scale web=3 --app $APP-bamboo
-
-  heroku create --org $ORG -s cedar $APP-cedar --remote s
-  heroku build services/http -r $APP-cedar
-  heroku scale web=3 --app $APP-cedar
-
-  heroku create --org $ORG -s cedar $APP-cedar-endpoint --remote s
-  heroku build services/http -r $APP-cedar-endpoint
-  heroku scale web=3 --app $APP-cedar-endpoint
-  heroku addons:add ssl:endpoint --app $APP-cedar-endpoint
-  heroku domains:add www.$APP-cedar-endpoint.com --app $APP-cedar-endpoint
-  openssl genrsa -out server.key 2048 $> /dev/null
-  openssl req -new -key server.key -out server.csr -batch -subj "/C=US/ST=CA/O=$ORG_NAME/CN=www.$APP-cedar-endpoint.com" &> /dev/null
-  openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt &> /dev/null
-  heroku certs:add server.crt server.key --app $APP-cedar-endpoint
-
+  for i in {0..2}
+  do
+    heroku create --org $ORG -s bamboo $APP-bamboo-$i --remote s
+    heroku build services/http -r $APP-bamboo-$i&
+   
+    heroku create --org $ORG -s cedar $APP-cedar-$i --remote s
+    heroku build services/http -r $APP-cedar-$i&
+   
+    heroku create --org $ORG -s cedar $APP-cedar-endpoint-$i --remote s
+    heroku build services/http -r $APP-cedar-endpoint-$i&
+    heroku addons:add ssl:endpoint --app $APP-cedar-endpoint-$i
+    heroku domains:add www.$APP-cedar-endpoint-$1.com --app $APP-cedar-endpoint-$i
+    openssl genrsa -out server.key 2048 $> /dev/null
+    openssl req -new -key server.key -out server.csr -batch -subj "/C=US/ST=CA/O=$ORG_NAME/CN=www.$APP-cedar-endpoint-$i.com" &> /dev/null
+    openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt &> /dev/null
+    heroku certs:add server.crt server.key --app $APP-cedar-endpoint-$i 
+    rm server.crt
+    rm server.key
+  done
   rm server.*
   git remote rm s
+EOF
+
+run "Scale canary endpoints" <<'EOF'
+  export $(cat .env)
+  for i in {0..2}
+  do
+    heroku scale web=2 --app $APP-bamboo-$i
+    heroku scale web=2 --app $APP-cedar-$i
+    heroku scale web=2 --app $APP-cedar-endpoint-$i
+  done
 EOF
 
 run "Creating monitor app..." <<'EOF'
@@ -74,7 +86,7 @@ run "Creating monitor app..." <<'EOF'
   set -x
   heroku create $APP --org $ORG
   heroku config:set FREQ=20 APP=$APP HEROKU_API_KEY=$HEROKU_API_KEY --app $APP
-  heroku build -b https://github.com/nzoschke/buildpack-ferret.git -r $APP
+  heroku build -b https://github.com/nzoschke/buildpack-ferret.git -r $APP&
 EOF
 
 run "Joining all apps..." <<'EOF'
