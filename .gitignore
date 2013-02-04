@@ -1,2 +1,8 @@
 .anvil
 .env
+.sublime-project
+.sublime-workspace
+Procfile
+.key
+.crt
+.csr
