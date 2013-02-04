@@ -1,0 +1,30 @@
+{
+  "name": "canary",
+  "token": "6f65d7cc-5443-4a99-9545-8bec7a301941",
+	"metrics": [
+		{
+			"display": "endpoint",
+			"measure": "uptime",
+			"source": "http.endpoint.curl",
+			"status-levels": {"green": 99, "yellow": 98, "red": 95},
+			"resolution": 60,
+			"limit": 1
+		},
+		{
+			"display": "bamboo",
+			"measure": "uptime",
+			"source": "http.bamboo.curl",
+    	"status-levels": {"green": 99, "yellow": 98, "red": 95},
+			"resolution": 60,
+			"limit": 1
+		},
+		{
+			"display": "cedar",
+			"measure": "uptime",
+			"source": "http.cedar.curl",
+		 	"status-levels": {"green": 99, "yellow": 98, "red": 95},
+   		"resolution": 60,
+			"limit": 1
+		}
+	]
+}
