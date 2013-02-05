@@ -58,9 +58,9 @@ run "Creating canary endpoints" <<'EOF'
     heroku create --org $ORG -s cedar $APP-cedar-endpoint-$i --remote s
     heroku build services/http -r $APP-cedar-endpoint-$i&
     heroku addons:add ssl:endpoint --app $APP-cedar-endpoint-$i
-    heroku domains:add www.$APP-cedar-endpoint-$1.com --app $APP-cedar-endpoint-$i
+    heroku domains:add www.$APP-cedar-endpoint-${1}.com --app $APP-cedar-endpoint-$i
     openssl genrsa -out server.key 2048 $> /dev/null
-    openssl req -new -key server.key -out server.csr -batch -subj "/C=US/ST=CA/O=$ORG_NAME/CN=www.$APP-cedar-endpoint-$i.com" &> /dev/null
+    openssl req -new -key server.key -out server.csr -batch -subj "/C=US/ST=CA/O=$ORG_NAME/CN=www.$APP-cedar-endpoint-${i}.com" &> /dev/null
     openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt &> /dev/null
     heroku certs:add server.crt server.key --app $APP-cedar-endpoint-$i 
     rm server.crt
@@ -85,7 +85,7 @@ run "Creating monitor app..." <<'EOF'
 
   set -x
   heroku create $APP --org $ORG
-  heroku config:set FREQ=20 APP=$APP HEROKU_API_KEY=$HEROKU_API_KEY --app $APP
+  heroku config:set FREQ=20 APP=$APP HEROKU_API_KEY=$HEROKU_API_KEY METRICS_URL=$METRICS_URL --app $APP
   heroku build -b https://github.com/nzoschke/buildpack-ferret.git -r $APP&
 EOF
 
