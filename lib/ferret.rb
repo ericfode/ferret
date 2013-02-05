@@ -30,7 +30,6 @@ class Ferret
         sleep interval * ENV["FREQ"].to_i
       end
     end
-<<<<<<< HEAD
 
     log source: source, i: i, status: status, measure: measure
     log source: source, i: i, val: val, measure: "uptime"
@@ -46,19 +45,6 @@ class Ferret
     test(opts)
   end
 
-=======
-  end
-
-  def run_every_time(&block)
-    run_interval(1,block)
-  end
-
-  def bash(opts={})
-    opts[:bash_script] = opts[:stdin]
-    test(opts)
-  end
-
->>>>>>> dd53ffa6c11702d064b357013f30d286570016bf
   def log_uptime(source, i, time, up)
     if up 
       measure = "success"
@@ -88,18 +74,10 @@ class Ferret
     { status: $?.exitstatus, out: r1.read }
   end
 
-<<<<<<< HEAD
-
   def self.run_ruby_script(&block)
     { status: (yield source) ? 0 : 1, out: "" }
   end
 
-=======
-  def self.run_ruby_script(&block)
-    { status: (yield source) ? 0 : 1, out: "" }
-  end
-
->>>>>>> dd53ffa6c11702d064b357013f30d286570016bf
   def self.check_success(result, status_match, pattern_match)
       success = result[:status] == status_match
       success &&= !!(result[:out] =~ pattern_match) if pattern_match
@@ -226,9 +204,5 @@ class Ferret
       super opts
     end   
   end
-<<<<<<< HEAD
 end
 
-=======
-end
->>>>>>> dd53ffa6c11702d064b357013f30d286570016bf
