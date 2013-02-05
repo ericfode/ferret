@@ -12,3 +12,4 @@ monitors_perf_network: monitors/perf/network
 monitors_ssh_fingerprint: monitors/ssh/fingerprint
 monitors_ssh_path: monitors/ssh/path
 web: bundle exec thin start -p $PORT
+
