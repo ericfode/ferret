@@ -1,40 +1,39 @@
 {
   "name": "development",
-    "token": "12fcaca-26ae-45f0-817b-d1c2e764a92a",
-    "metrics": [
-        {
-            "display": "git",
-            "measure": "uptime",
-            "source": "git.clone.clone",
-            "status-levels": {"green": 90, "yellow": 80, "red": 60},
-            "resolution": 5,
-            "limit": 1
-        },
-        {
-            "display": "http",
-            "measure": "uptime",
-            "source": "http.curl.poll",
-            "status-levels": {"green": 99, "yellow": 80, "red": 60},
-            "resolution": 5,
-            "limit": 1
-        },
-        {
-            "display": "ssh",
-            "measure": "uptime",
-            "source": "ssh.fingerprint.invalid",
-            "status-levels": {"green": 99, "yellow": 80, "red": 60},
-            "resolution": 5,
-            "limit": 1
-        },
-        {
-            "display": "oauth",
-            "measure": "uptime",
-            "source": "oauth.redirect.redirect",
-            "status-levels": {"green": 99, "yellow": 80, "red": 60},
-            "resolution": 5,
-            "limit": 1
-        }
-    ]
+	"metrics": [
+		{
+			"display": "git",
+			"measure": "uptime",
+			"source": "git.clone.clone",
+			"status-levels": {"green": 90, "yellow": 80, "red": 60},
+			"resolution": 5,
+			"limit": 1
+		},
+		{
+			"display": "http",
+			"measure": "uptime",
+			"source": "http.curl.poll",
+			"status-levels": {"green": 99, "yellow": 80, "red": 60},
+			"resolution": 5,
+			"limit": 1
+		},
+		{
+			"display": "ssh",
+			"measure": "uptime",
+			"source": "ssh.fingerprint.invalid",
+			"status-levels": {"green": 99, "yellow": 80, "red": 60},
+			"resolution": 5,
+			"limit": 1
+		},
+		{
+			"display": "oauth",
+			"measure": "uptime",
+			"source": "oauth.redirect.redirect",
+			"status-levels": {"green": 99, "yellow": 80, "red": 60},
+			"resolution": 5,
+			"limit": 1
+		}
+	]
 }
 
 

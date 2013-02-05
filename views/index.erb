@@ -47,8 +47,9 @@
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
   <script src="./main.js"></script>
   <script>
-    Ferret.manifestNames = [ <%= manifests.map { |m| %("#{m}") }.join(",") %> ]
+    Ferret.manifestNames = [ <%= manifests.map { |m| %("#{m}") }.join(",") %> ];
     Ferret.metricsUrl    = "<%= metrics_url %>";
+    Ferret.metricToken   = "<%= metric_token %>";
 
     $(function(){
       Ferret.manifestNames.forEach(function(name){

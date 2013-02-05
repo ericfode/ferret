@@ -40,7 +40,7 @@ Ferret.build = function(manifest, metric){
 
 Ferret.populate = function(manifest, metric){
   var name   = manifest.name,
-      token  = manifest.token,
+      token  = Ferret.metricToken,
       params = {};
 
   params["limit"] = metric.limit;
