@@ -10,6 +10,10 @@ helpers do
   def metrics_url
     ENV["METRICS_URL"]
   end
+
+  def metric_token
+    ENV["METRICS_TOKEN"]
+  end
 end
 
 get "/" do
