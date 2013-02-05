@@ -93,7 +93,7 @@ def test(opts={}, &blk)
     Timeout.timeout(opts[:timeout]) do
       opts[:retry].times do |i|
         start = Time.now
-        log source: source, i: i, at: :enter
+        log source: source, splunksource: source, i: i, at: :enter
 
         if opts[:bash]
           r0, w0 = IO.pipe
@@ -121,22 +121,22 @@ def test(opts={}, &blk)
 
         if success
           Thread.current[:failcount] = 0
-          log source: source, i: i, status: status, measure: "success"
-          log source: source, i: i, val: 100, measure: "uptime"
-          log source: source, i: i, at: :return, val: "%0.4f" % (Time.now - start), measure: "time"
+          log source: source, splunksource: source, i: i, status: status, measure: "success"
+          log source: source, splunksource: source, i: i, val: 100, measure: "uptime"
+          log source: source, splunksource: source, i: i, at: :return, val: "%0.4f" % (Time.now - start), measure: "time"
           return success # break out of retry loop
         else
-          out.each_line { |l| log source: source, i: i, at: :failure, out: "'#{l.strip}'" }
+          out.each_line { |l| log source: source, splunksource: source, i: i, at: :failure, out: "'#{l.strip}'" }
         end
           if i == opts[:retry] - 1  # only measure last failure
-            log source: source, i: i, status: status, measure: "failure"
-            log source: source, i: i, val: 0, measure: "uptime"
-            log source: source, i: i, at: :return, val: "%0.4f" % (Time.now - start)
+            log source: source, splunksource: source, i: i, status: status, measure: "failure"
+            log source: source, splunksource: source, i: i, val: 0, measure: "uptime"
+            log source: source, splunksource: source, i: i, at: :return, val: "%0.4f" % (Time.now - start)
         end
       end
     end
   rescue Timeout::Error
-    log source: source, at: :timeout, val: opts[:timeout]
+    log source: source, splunksource: source, at: :timeout, val: opts[:timeout]
     if opts[:pid]
       Process.kill("INT", -Process.getpgid(opts[:pid]))
       Process.wait(opts[:pid])

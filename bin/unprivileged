@@ -1,7 +1,8 @@
 #!/bin/bash
 UNPRIVILEGED_USER=$1
 [ -n "$UNPRIVILEGED_USER" ] || { UNPRIVILEGED_USER=heroku.ferret.dev@gmail.com; }
-echo "Getting api key for ${UNPRIVILEGED_USER}(
+echo "Getting api key for ${UNPRIVILEGED_USER}"
+(
 heroku sudo user:info -x                               \
     --user ${UNPRIVILEGED_USER}                        \
   | awk '/Api Key:/ {print $3;}'                       \

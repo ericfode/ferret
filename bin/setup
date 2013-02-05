@@ -85,13 +85,14 @@ EOF
 
 run "Creating run app" <<'EOF'
   export $(cat .env)
-  heroku create --org $ORG $APP-run
+  heroku create --org $ORG $APP-run --remote s
+  git remote rm s
 EOF
 
 run "Creating addons app" <<EOF
   export $(cat .env)
-  heroku create --org $ORG $APP-addons
-
+  heroku create --org $ORG $APP-addons --remote s
+  git remote rm s
 EOF
 
 run "Creating monitor app..." <<'EOF'
@@ -114,7 +115,7 @@ EOF
 
 run "Adding drain..." <<'EOF'
   export $(cat .env)
-  heroku drains:add $L2MET_URL
+  heroku drains:add $L2MET_URL --app $APP
 EOF
 
 run "Scaling all procs..." <<'EOF'
