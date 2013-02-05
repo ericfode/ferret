@@ -85,13 +85,13 @@ EOF
 
 run "Creating run app" <<'EOF'
   export $(cat .env)
-  heroku create --org $ORG $APP-run --remote s
+  heroku create $APP-run --org $ORG --remote s
   git remote rm s
 EOF
 
 run "Creating addons app" <<EOF
   export $(cat .env)
-  heroku create --org $ORG $APP-addons --remote s
+  heroku create $APP-addons --org $ORG --remote s
   git remote rm s
 EOF
 
