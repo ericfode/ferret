@@ -70,7 +70,7 @@ run "Creating canary endpoints" <<'EOF'
   git remote rm s
 EOF
 
-<<<<<<< HEAD
+
 run "Scale canary endpoints" <<'EOF'
   export $(cat .env)
   for i in {0..2}
@@ -79,8 +79,9 @@ run "Scale canary endpoints" <<'EOF'
     heroku scale web=2 --app $APP-cedar-$i
     heroku scale web=2 --app $APP-cedar-endpoint-$i
   done
-=======
-run "Creating run app" <<EOF
+EOF
+
+run "Creating run app" <<'EOF'
   export $(cat .env)
   heroku create --org $ORG $APP-run
 EOF
@@ -88,7 +89,7 @@ EOF
 run "Creating addons app" <<EOF
   export $(cat .env)
   heroku create --org $ORG $APP-addons
->>>>>>> merging
+
 EOF
 
 run "Creating monitor app..." <<'EOF'
