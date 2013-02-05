@@ -1,5 +1,7 @@
 #!/bin/bash
+
 source bin/ferret.sh
+
 run "Testing env" <<'EOF'
   export $(cat .env)
   [ -n "$APP" ]             || { echo "error: APP required"; exit 1; }
@@ -15,7 +17,7 @@ run "Installing heroku plugins..." <<'EOF'
 EOF
 
 run "Updating Procfile..." <<'EOF'
-  bin/create_proc.sh monitors
+  bin/create_proc monitors
 EOF
 
 run "Managing user..." <<'EOF'
@@ -116,5 +118,5 @@ run "Adding drain..." <<'EOF'
 EOF
 
 run "Scaling all procs..." <<'EOF'
-  bin/scale.sh monitors 1
+  bin/scale monitors 1
 EOF
