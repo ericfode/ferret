@@ -12,23 +12,35 @@ canary Heroku apps.
 ## Development Setup
 
 Edit env.sample and fill in HEROKU_USERNAME with your unpriveledged @gmail.com
-Heroku account.
+Heroku account as well as HEROKU_API_KEY with an unpriveleged api key, L2MET_URL
+with the drain you want to use, and METRICS_TOKEN with your l2met token (
+the first part of the L2MET_URL), and APP_NAME with what you want your ferret
+deploy to be named.
 
 ```bash
-bin/setup
 
-# Run all monitors
+# Run all monitors locally
 foreman start
 
-# Run monitors with increased concurrency
+# Run monitors with increased concurrency locally
 foreman start --formation="monitor_git_clone=2"
+
 ```
 
 ## Platform Setup
 
 ```bash
-# Build and release the app
-foreman run heroku build -b https://github.com/nzoschke/buildpack-ferret.git -r $APP
+#Set up and run on the platform (the first time)
+bin/setup
+
+# Build and release the app if you make any changes
+heroku build -r
+
+# Scale all monitors
+bin/scale.sh [Path to monitors] [How many of each]
+
+#Teardown ferret and all of the service apps
+bin/teardown
 ```
 
 ## Philosophy
