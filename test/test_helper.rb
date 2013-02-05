@@ -1,6 +1,7 @@
 require "minitest/autorun"
 require "mocha/setup"
 require "debugger"
+require "tmpdir"
 
 
 ENV["APP"] = "ferret-tester"
