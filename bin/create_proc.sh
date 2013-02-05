@@ -7,4 +7,6 @@ do
     FERRET_NAME=$(echo $f | sed -e 's:\./::' -e 's:[/.-]:_:g')
     echo "$FERRET_NAME: $f" >> Procfile
 done
-echo "web: thin start -p \$PORT" >> Procfile
+
+echo "web: bundle exec thin start -p \$PORT" >> Procfile
+
