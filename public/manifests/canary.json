@@ -2,29 +2,29 @@
   "name": "canary",
   "token": "12fcaca-26ae-45f0-817b-d1c2e764a92a",
   "metrics": [
-		{
-			"display": "endpoint",
-			"measure": "uptime",
-			"source": "http.endpoint.curl",
-			"status-levels": {"green": 99, "yellow": 98, "red": 95},
-			"resolution": 60,
-			"limit": 1
-		},
-		{
-			"display": "bamboo",
-			"measure": "uptime",
-			"source": "http.bamboo.curl",
-    	    "status-levels": {"green": 99, "yellow": 98, "red": 95},
-			"resolution": 60,
-			"limit": 1
-		},
-		{
-			"display": "cedar",
-			"measure": "uptime",
-			"source": "http.cedar.curl",
-		 	"status-levels": {"green": 99, "yellow": 98, "red": 95},
-      		"resolution": 60,
-			"limit": 1
-		}
-	]
+        {
+            "display": "endpoint",
+            "measure": "uptime",
+            "source": "http.endpoint.curl",
+            "status-levels": {"green": 99, "yellow": 98, "red": 95},
+            "resolution": 60,
+            "limit": 1
+        },
+        {
+            "display": "bamboo",
+            "measure": "uptime",
+            "source": "http.bamboo.curl",
+            "status-levels": {"green": 99, "yellow": 98, "red": 95},
+            "resolution": 60,
+            "limit": 1
+        },
+        {
+            "display": "cedar",
+            "measure": "uptime",
+            "source": "http.cedar.curl",
+            "status-levels": {"green": 99, "yellow": 98, "red": 95},
+            "resolution": 60,
+            "limit": 1
+        }
+    ]
 }
