@@ -9,15 +9,21 @@ locally and are deployed to Heroku to run continuously.
 Ferret also includes tools for managing services. These are generally disposable
 canary Heroku apps.
 
-## Development Setup
+## Environment Setup
 
-Edit env.sample and fill in HEROKU_USERNAME with your unpriveledged @gmail.com
-Heroku account as well as HEROKU_API_KEY with an unpriveleged api key, L2MET_URL
-with the drain you want to use, and METRICS_TOKEN with your l2met token (
-the first part of the L2MET_URL), and APP_NAME with what you want your ferret
-deploy to be named.
+Copy env.sample to .env
+* APP is the name that you want to prefix your ferret deployment.
+* HEROKU_USERNAME is a unprivileged user that will be deploying ferret. We use an unprivileged user because we deploy the api key to the app and don't want sudo api keys on the platform
+* HEROKU_API_KEY is the api key for the username. You can easily obtain one (if you have sudo) by running ```bin/unprivileged [email address]``` 
+* ORG is the organization that the ferret is deploying to
+* L2MET_URL can be obtained at [l2met](https://www.l2met.net)
+* METRICS_URL is the prefix for the metrics dashboard, this should be fairly static but if it is not working ask eric@heroku.com
+* METRICS_TOKEN is the api key for l2met
 
-```bash
+
+# Development 
+
+```
 
 # Run all monitors locally
 foreman start
@@ -25,11 +31,14 @@ foreman start
 # Run monitors with increased concurrency locally
 foreman start --formation="monitor_git_clone=2"
 
+# Run a single monitor
+foreman run path/to/monitor
+
 ```
 
-## Platform Setup
+## Platform Setup and Teardown
 
-```bash
+```
 #Set up and run on the platform (the first time)
 bin/setup
 
@@ -37,20 +46,33 @@ bin/setup
 heroku build -r
 
 # Scale all monitors
-bin/scale.sh [Path to monitors] [How many of each]
+bin/scale [Path to monitors] [How many of each]
 
 #Teardown ferret and all of the service apps
 bin/teardown
 ```
 
+## Common Tasks
+```
+# Push changes to ferret
+heroku build -r
+
+# Scale all monitors
+bin/scale [path to monitors] [how many of each]
+
+# Regenerate the profile
+bin/create_proc [path to monitors]
+
+# Get an unprivileged API key
+bin/unprivileged [an email]
+```
+
 ## Philosophy
 
-Ferret is designed to easily apply the canary pattern to Heroku kernel services.
-Much thought should be given on how to measure properties of services in
-isolation.
+Ferret is designed to easily apply the canary pattern to Heroku kernel services. Much thought should be given on how to measure properties of services in isolation.
 
 Ferret *does not* implement complex platform integration tests, though these 
-would be easy to build with the framework.
+Would be easy to build with the framework.
 
 ## Platform Features
 
