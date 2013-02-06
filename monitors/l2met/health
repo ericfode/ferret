@@ -2,7 +2,7 @@
 require_relative "../../lib/ferret"
 
 run_every_time do
-  bash(name: :curl, pattern: /Creating #{ENV["APP"]}-apps/, stdin: <<-'EOF')
+  bash(name: :curl, stdin: <<-'EOF')
    curl --fail https://l2met-next.herokuapp.com/health -v
   EOF
 end
