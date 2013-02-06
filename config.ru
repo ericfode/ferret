@@ -20,4 +20,9 @@ get "/" do
   erb :index
 end
 
+get "/health" do
+  ""
+end
+
+
 run Sinatra::Application
