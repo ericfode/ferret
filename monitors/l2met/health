@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+require_relative "../../lib/ferret"
+
+run_every_time do
+  bash(name: :curl, pattern: /Creating #{ENV["APP"]}-apps/, stdin: <<-'EOF')
+   curl --fail https://l2met-next.herokuapp.com/health -v
+  EOF
+end
+
+run forever: true

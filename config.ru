@@ -24,5 +24,4 @@ get "/health" do
   ""
 end
 
-
 run Sinatra::Application

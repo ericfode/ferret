@@ -32,6 +32,22 @@
 			"status-levels": {"green": 99, "yellow": 80, "red": 60},
 			"resolution": 5,
 			"limit": 1
+		},
+		{
+			"display": "l2met",
+			"measure": "uptime",
+			"source": "l2met.health.curl",
+			"status-levels": {"green": 99, "yellow": 80, "red": 60},
+			"resolution": 5,
+			"limit": 1
+		},
+		{
+			"display": "l2met API",
+			"measure": "uptime",
+			"source": "l2met.metric.get",
+			"status-levels": {"green": 99, "yellow": 80, "red": 60},
+			"resolution": 5,
+			"limit": 1
 		}
 	]
 }
