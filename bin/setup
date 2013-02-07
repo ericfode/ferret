@@ -100,7 +100,12 @@ run "Creating monitor app..." <<'EOF'
 
   set -x
   heroku create $APP --org $ORG
-  heroku config:set FREQ=20 APP=$APP HEROKU_API_KEY=$HEROKU_API_KEY METRICS_URL=$METRICS_URL METRICS_TOKEN=$METRICS_TOKEN --app $APP
+  heroku config:set FREQ=20 APP=$APP \
+  HEROKU_API_KEY=$HEROKU_API_KEY     \
+  METRICS_URL=$METRICS_URL           \
+  METRICS_TOKEN=$METRICS_TOKEN       \
+  SPLUNK_TOKEN=$SPLUNK_TOKEN         \
+  --app $APP
   heroku build -b https://github.com/nzoschke/buildpack-ferret.git -r $APP&
 EOF
 

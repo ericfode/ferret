@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+require_relative "../../lib/ferret"
+
+run_every_time do
+  bash(name: :curl, stdin: <<-'EOF')
+   curl --fail https://u:$SPLUNK_TOKEN@umpire.herokai.com/check\?metric\=asPercent\(maxSeries\(mitt.ops-herokai-com.splunk-searcher.\*.splunk_searcher_distributed_search_peers.up\),maxSeries\(mitt.ops-herokai-com.splunk-searcher.\*.splunk_searcher_distributed_search_peers.total\)\)\&max\=100\&min\=80\&range\=300
+  EOF
+end
+
+run forever: true
