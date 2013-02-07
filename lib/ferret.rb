@@ -14,7 +14,6 @@ ENV["TEMP_DIR"]           ||= Dir.mktmpdir
 ENV["FREQ"].to_i          ||= 30.to_s
 Thread.current[:xid]        = SecureRandom.hex(4)
 ENV["SERVICE_LOG_NAME"]   ||= "#{ENV["APP"]}.#{ENV["NAME"]}" # e.g. ferret-noah.git-push #slave app name
-ENV["SERVICE_APP_NAME"]   ||= ENV["USER"] + "-" + ENV["SERVICE_LOG_NAME"].gsub(/[\._]/, '-') # e.g. ferret-noah-git-push #used for deploying slave app
 
 script = ENV["SCRIPT"].chomp(File.extname(ENV["SCRIPT"]))           # strip extension
 script = script.split("/").last(2).join("/")                        # e.g. git/push or unit/test_ferret
