@@ -1,11 +1,12 @@
 require_relative "../test_helper.rb"
 
-class Monitor::BashTest < MiniTest::Unit::TestCase
+class Script::BashTest < MiniTest::Unit::TestCase
   def setup 
-    @m = Monitor.new()
-
-
+    @m = Script.new()
+    $logdevs = [StringIO.new]
   end
+
+
   test "run simple script with exit status 0" do
       result = @m.run_bash_script('echo ""')
       assert_equal result[:status], 0
@@ -33,7 +34,7 @@ class Monitor::BashTest < MiniTest::Unit::TestCase
   end
 
   test "run Monitor" do
-    m = Monitor.new(bash_script:"echo '1'", pattern:/1/)
+    m = Script.new(bash_script:"echo '1'", pattern:/1/)
     m.run
     assert_equal logs, <<-'EOF'
 app=ferret-tester xid=deadbeef source="dummy.script.test" i=0 at=enter

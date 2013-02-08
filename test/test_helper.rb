@@ -8,7 +8,6 @@ ENV["APP"] = "ferret-tester"
 ENV["SCRIPT"] = "./dummy/script.rb"
 ENV["NAME"] = "test_app"
 ENV["FREQ"] = 0.1.to_s
-$logdevs = [StringIO.new]
 
 require_relative "../lib/ferret.rb"
 
@@ -16,15 +15,7 @@ class MiniTest::Unit::TestCase
   def self.test(desc="", &block)
     define_method("test #{desc}", &block)
   end
-  
-  def setup
-    ENV["TEMP_DIR"] = Dir.mktmpdir
-    $logdevs = [StringIO.new]
-  end
 
-  def teardown
-    $logdevs = [StringIO.new]
-  end
 
   def logs
     $logdevs[0].rewind
