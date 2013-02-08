@@ -26,9 +26,7 @@ class Script::BashTest < MiniTest::Unit::TestCase
 
   test "run block" do 
 
-    result = @m.run_block( Proc.new do
-      1
-    end)
+    result = @m.run_block( -> { 1 })
     assert_equal result[:status], 0
     assert_equal result[:out], ""
   end
