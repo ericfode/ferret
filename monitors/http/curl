@@ -2,7 +2,7 @@
 require_relative "../../lib/ferret"
 
 run_every_time do
-  bash(name: :curl, timeout: 3900, stdin: <<-'EOSH')
+  bash(name: :curl, timeout: 5, stdin: <<-'EOSH')
     curl --fail http://blog.herokuapp.com -v
   EOSH
 end
