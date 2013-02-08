@@ -7,7 +7,7 @@ require "tmpdir"
 ENV["APP"] = "ferret-tester"
 ENV["SCRIPT"] = "./dummy/script.rb"
 ENV["NAME"] = "test_app"
-ENV["FREQ"] = 1.to_s
+ENV["FREQ"] = 0.1.to_s
 $logdevs = [StringIO.new]
 
 require_relative "../lib/ferret.rb"
@@ -18,10 +18,11 @@ class MiniTest::Unit::TestCase
   end
   def setup
     ENV["TEMP_DIR"] = Dir.mktmpdir
-    $logdevs[0].rewind
-    $logdevs[0].truncate(0)
+    $logdevs = [StringIO.new]
   end
-
+  def teardown
+    $logdevs = [StringIO.new]
+  end
   def logs
     $logdevs[0].rewind
     l = $logdevs[0].read
