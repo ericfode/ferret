@@ -16,13 +16,16 @@ class MiniTest::Unit::TestCase
   def self.test(desc="", &block)
     define_method("test #{desc}", &block)
   end
+  
   def setup
     ENV["TEMP_DIR"] = Dir.mktmpdir
     $logdevs = [StringIO.new]
   end
+
   def teardown
     $logdevs = [StringIO.new]
   end
+
   def logs
     $logdevs[0].rewind
     l = $logdevs[0].read

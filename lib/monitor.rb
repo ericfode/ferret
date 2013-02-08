@@ -2,6 +2,7 @@ class Monitor
   attr_accessor :source, :target_status, :target_pattern, :trys, :timeout, :block, :bash_script, :name
   
   attr_accessor :last_try_time, :try, :result, :start_time, :success
+  
   def initialize(opts={}, &block)
     #defaults
     opts.rmerge!(name: "test", retry: 1, pattern: nil, status: 0, timeout: 180)
@@ -34,7 +35,7 @@ class Monitor
     { status: $?.exitstatus, out: r1.read }
   end
 
-  def run_block(&block)
+  def run_block(block=@block)
     { status: (block.call) ? 0 : 1, out: "" }
   end
 
@@ -78,7 +79,7 @@ class Monitor
       log source: @source, at: :timeout, val: @timeout
       success = false
       if @pid
-      #  Process.kill("INT", -Process.getpgid(@pid))
+        Process.kill("INT", -Process.getpgid(@pid))
         Process.wait(@pid)
         @pid =nil
       end
@@ -86,6 +87,7 @@ class Monitor
     end
   
     log_uptime
+
     return self
   end
 

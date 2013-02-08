@@ -23,10 +23,11 @@ class Monitor::BashTest < MiniTest::Unit::TestCase
       assert_equal result[:status], 127
   end 
 
-  test "run block" do
-    result = @m.run_block do
+  test "run block" do 
+
+    result = @m.run_block( Proc.new do
       1
-    end
+    end)
     assert_equal result[:status], 0
     assert_equal result[:out], ""
   end

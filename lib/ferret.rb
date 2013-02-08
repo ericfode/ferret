@@ -10,6 +10,11 @@ ENV["FERRET_DIR"]         ||= File.expand_path(File.join(__FILE__, "..", ".."))
 ENV["SCRIPT"]             ||= File.expand_path($0) # $FERRET_DIR/tests/git/push or $FERRET_DIR/tests/unit/test_ferret.rb
 $logdevs ||= [$stdout, IO.popen("logger", "w")]
 
+$fail_fast = false
+
+def fail_fast(val)
+  $fail_fast = val
+end
 
 def run(opts={})
   if opts[:forever]
@@ -41,13 +46,28 @@ end
 
 def bash(opts={})
   opts[:bash_script] = opts[:stdin]
-  test(opts)
+  mon = Monitor.new opts
+
+  mon.run
+  
+  if $fail_fast && !mon.success
+    exit 1
+  end
+  
+  return mon
 end
 
-
 def test(opts={}, &block) 
-  mon = Monitor.new(opts)
+  mon = Monitor.new opts do 
+    block.call
+  end
+
   mon.run
+ 
+  if $fail_fast && !mon.success
+    exit 1
+  end
+
   return mon
 end
 
