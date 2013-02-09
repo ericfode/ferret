@@ -12,45 +12,163 @@ Rake::TestTask.new :test do |t|
   t.pattern = "./test/**/*_test.rb"
 end
 
-namespace :setup do
+namespace :teardown do
 
-  task :test_env do
-    bash name: :test_env, stdin: <<-'EOF'
+  task :all => [:ask,:services,:monitor,:endpoints,:run_app]
+
+  task :ask do
+    out =`heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1`
+    puts "tearing down #{out}"
+    puts "is that ok (y/n)"
+    get_input
+  end
+
+  task :services do
+
+    bash name: :teardown_services, stdin: <<-'EOF'
+      for APP in $(heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1); do
+      (
+        set -x
+        heroku destroy $APP --confirm $APP
+      )
+      done
+    EOF
+  end
+
+  task :monitor do
+    bash name: :teardown_monitor, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
-      [ -n "$APP" ]             || { echo "error: APP required"; exit 1; }
-      [ -n "$HEROKU_API_KEY" ]  || { echo "error: HEROKU_API_KEY required"; exit 1; }
-      [ -n "$HEROKU_USERNAME" ] || { echo "error: HEROKU_USERNAME required"; exit 1; }
-      [ -n "$ORG" ]             || { echo "error: ORG required"; exit 1; }
-      [ -n "$L2MET_URL" ]       || { echo "error: L2MET_URL required"; exit 1; }
+      heorku destroy $APP --confirm $APP
     EOF
   end
 
-  task :install_plugins do
-    bash name: :install_plugins, stdin: <<-'EOF'
-      heroku plugins:install https://github.com/ddollar/heroku-anvil
-      heroku plugins:install git@github.com:heroku/heroku-orgs.git
+  task :endpoints do
+    2.times do |i|
+      ENV["i"] = i.to_s
+
+      bash name: "teardown_bamboo_endpoint-#{i}", retry:1, stdin: <<-'EOF'    
+        export $(cat $FERRET_DIR/.env)
+        heroku destroy $APP-bamboo-$i --confirm $APP-bamboo-$i
+      EOF
+
+      bash name: "teardown_cedar_endpoint-#{i}", retry:1, stdin: <<-'EOF'      
+        export $(cat $FERRET_DIR/.env)
+        heroku destroy $APP-cedar-$i --confirm $APP-cedar-$i
+      EOF
+
+      bash name: "teardown_ssl_endpoint-#{i}", retry:1, stdin: <<-'EOF'    
+        export $(cat $FERRET_DIR/.env)
+        heroku destroy $APP-cedar-endpoint-$i --confirm $APP-cedar-endpoint-$i
+      EOF
+    end
+  end  
+
+  task :run_app do
+    bash name: :teardown_run_app, retry:3, stdin: <<-'EOF'
+      export $(cat $FERRET_DIR/.env)
+      heroku destroy $APP-run --confirm $APP-run
     EOF
   end
 
-  task :update_procfile do
+end
+
+namespace :update do
+  task :all => [:monitor,:services,:endpoints]
+
+  task :config do
+    bash name: :update_config, stdin: <<-'EOF'
+      heroku config:set                  \
+      FREQ=20                            \
+      APP=$APP                           \
+      HEROKU_API_KEY=$HEROKU_API_KEY     \
+      METRICS_URL=$METRICS_URL           \
+      METRICS_TOKEN=$METRICS_TOKEN       \
+      SPLUNK_TOKEN=$SPLUNK_TOKEN         \
+      --app $APP
+    EOF
+
+  end
+
+  task :procfile do
     bash name: :update_procfile, stdin: <<-'EOF'
       $FERRET_DIR/bin/create_proc monitors
     EOF
   end
 
-  task :setup_user do
-    bash name: :setup_user, stdin: <<-'EOF'
-      export $(cat $FERRET_DIR/.env)
-      unset HEROKU_API_KEY
-
-      set -x
-      heroku members:add $HEROKU_USERNAME --org $ORG --role admin
-      heroku sudo labs:enable create-bamboo --user $HEROKU_USERNAME
-      heroku sudo labs:enable logplex-beta-program --user $HEROKU_USERNAME
+  task :monitor => [:procfile,:config] do
+    bash name: :update_monitor_app, retry:3, stdin: <<-'EOF'
+      heroku build $FERRET_DIR -b https://github.com/nzoschke/buildpack-ferret.git -r $APP
     EOF
   end
 
-  task :deploy_services do
+  task :services do
+   Dir.foreach("#{ENV["FERRET_DIR"]}/services") do |file|
+    ENV["s"] = file 
+      bash name: "update_service-#{file}", retry:3, stdin: <<-'EOF'
+        export $(cat $FERRET_DIR/.env)
+        SERVICE_APP=$APP-$(basename $FERRET_DIR/$s)
+        OPTS=$(cat $FERRET_DIR/$s/create.opts 2>/dev/null)
+        heroku build $FERRET_DIR/$s -r $SERVICE_APP
+      EOF
+      ENV["s"] = ""
+    end
+  end
+
+  task :endpoints do
+    2.times do |i|
+      ENV["i"] = i.to_s
+
+      bash name: "update_bamboo_endpoint-#{i}", retry:3, stdin: <<-'EOF'    
+        heroku build $FERRET_DIR/services/http -r $APP-bamboo-$i && heroku scale web=2 --app $APP-bamboo-$i
+      EOF
+
+      bash name: "update_cedar_endpoint-#{i}", retry:3, stdin: <<-'EOF'      
+        heroku build $FERRET_DIR/services/http -r $APP-cedar-$i && heroku scale web=2 --app $APP-cedar-$i
+      EOF
+
+      bash name: "update_ssl_endpoint-#{i}", retry:3, stdin: <<-'EOF'    
+        heroku build $FERRET_DIR/services/http -r $APP-cedar-endpoint-$i&
+      EOF
+    end
+  end
+
+end
+
+namespace :util do
+
+  task :all =>[:join_apps,:add_drain,:scale]
+
+  task :join_apps do
+    bash name: :join_apps, stdin: <<-'EOF'
+      export $(cat $FERRET_DIR/.env)
+      unset HEROKU_API_KEY
+      for APP in $(heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1); do
+        heroku join --app $APP
+      done
+    EOF
+  end
+
+  task :add_drain do
+    bash name: :add_drain, stdin: <<-'EOF'
+         heroku drains:add $L2MET_URL --app $APP
+    EOF
+  end
+
+  task :scale do
+    bash name: :scale, stdin: <<-'EOF'
+      export $(cat $FERRET_DIR/.env)
+      $FERRET_DIR/bin/scale monitors 1
+    EOF
+  end
+
+end
+
+
+namespace :deploy do
+  #addons_app is broken so is not included
+  task :all => [:services,:endpoints,:monitor,:run_app]
+
+  task :services do
     Dir.foreach("#{ENV["FERRET_DIR"]}/services") do |file|
     ENV["s"] = file 
       bash name: "deploy_service-#{file}", retry:3, stdin: <<-'EOF'
@@ -67,8 +185,8 @@ namespace :setup do
     end
   end
 
-  task :deploy_endpoints do
-    2.times do |i|
+  task :endpoints do
+    3.times do |i|
       ENV["i"] = i.to_s
 
       bash name: "deploy_bamboo_endpoint-#{i}", retry:3, stdin: <<-'EOF'    
@@ -78,11 +196,13 @@ namespace :setup do
       EOF
 
       bash name: "deploy_cedar_endpoint-#{i}", retry:3, stdin: <<-'EOF'      
+        export $(cat $FERRET_DIR/.env)
         heroku create --org $ORG -s cedar $APP-cedar-$i --remote s
         heroku build $FERRET_DIR/services/http -r $APP-cedar-$i && heroku scale web=2 --app $APP-cedar-$i
       EOF
 
       bash name: "deploy_ssl_endpoint-#{i}", retry:3, stdin: <<-'EOF'    
+        export $(cat $FERRET_DIR/.env)
         heroku create --org $ORG -s cedar $APP-cedar-endpoint-$i --remote s
         success=heroku build $FERRET_DIR/services/http -r $APP-cedar-endpoint-$i&
         heroku addons:add ssl:endpoint --app $APP-cedar-endpoint-$i
@@ -97,24 +217,9 @@ namespace :setup do
     end
   end
 
-  task :create_run_app do
-    bash name: :create_run_app, retry:3, stdin: <<-'EOF'
-      export $(cat $FERRET_DIR/.env)
-      heroku create $APP-run --org $ORG 
-    EOF
-  end
-
-  task :create_addon_app do 
-    bash name: :create_addon_app, retry:3, stdin: <<-'EOF'
-      export $(cat $FERRET_DIR/.env)
-      heroku create $APP-addons --org $ORG 
-    EOF
-  end
-
-  task :create_monitor_app do
+  task :monitor do
     bash name: :create_monitor_app, retry:3, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
-
       set -x
       heroku create $APP --org $ORG
       heroku config:set FREQ=20 APP=$APP \
@@ -127,27 +232,68 @@ namespace :setup do
     EOF
   end
 
-  task :join_apps do
-    bash name: :join_apps, stdin: <<-'EOF'
-      export $(cat .env)
+  task :run_app do
+    bash name: :create_run_app, retry:3, stdin: <<-'EOF'
+      export $(cat $FERRET_DIR/.env)
+      heroku create $APP-run --org $ORG 
+    EOF
+  end
+
+  task :addon_app do 
+    bash name: :create_addon_app, retry:3, stdin: <<-'EOF'
+      export $(cat $FERRET_DIR/.env)
+      heroku create $APP-addons --org $ORG
+    EOF
+  end
+
+end
+
+namespace :setup do
+
+  task :all => [:test_env,:plugins,:user,"deploy:all","setup:all"]
+
+  task :test_env do
+    bash name: :test_env, stdin: <<-'EOF'
+      export $(cat $FERRET_DIR/.env)
+      [ -n "$APP" ]             || { echo "error: APP required"; exit 1; }
+      [ -n "$HEROKU_API_KEY" ]  || { echo "error: HEROKU_API_KEY required"; exit 1; }
+      [ -n "$HEROKU_USERNAME" ] || { echo "error: HEROKU_USERNAME required"; exit 1; }
+      [ -n "$ORG" ]             || { echo "error: ORG required"; exit 1; }
+      [ -n "$L2MET_URL" ]       || { echo "error: L2MET_URL required"; exit 1; }
+    EOF
+  end
+
+  task :plugins do
+    bash name: :install_plugins, stdin: <<-'EOF'
+      heroku plugins:install https://github.com/ddollar/heroku-anvil
+      heroku plugins:install git@github.com:heroku/heroku-orgs.git
+    EOF
+  end
+
+  task :user do
+    bash name: :setup_user, stdin: <<-'EOF'
+      export $(cat $FERRET_DIR/.env)
       unset HEROKU_API_KEY
 
-      for APP in $(heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1); do
-        heroku join --app $APP
-      done
-    EOF
-  end
-
-  task :add_drain do
-    bash name: :add_drain, stdin: <<-'EOF'
-      export $(cat .env)
-      heroku drains:add $L2MET_URL --app $APP
-    EOF
-  end
-
-  task :scale do
-    bash name: :scale, stdin: <<-'EOF'
-      $FERRET_DIR/bin/scale monitors 1
+      set -x
+      heroku members:add $HEROKU_USERNAME --org $ORG --role admin
+      heroku sudo labs:enable create-bamboo --user $HEROKU_USERNAME
+      heroku sudo labs:enable logplex-beta-program --user $HEROKU_USERNAME
     EOF
   end
 end
+
+def get_input
+  STDOUT.flush
+  input = STDIN.gets.chomp
+  case input.upcase
+  when "Y"
+    puts "going through with the task.."
+    Rake::Task['teardown:services'].invoke
+  when "N"
+    puts "aborting the task.."
+  else
+    puts "Please enter Y or N"
+    get_input
+  end
+end 
