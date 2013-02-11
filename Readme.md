@@ -20,12 +20,18 @@ Copy env.sample to .env
 * L2MET_URL can be obtained at [l2met](https://www.l2met.net)
 * METRICS_URL is the prefix for the metrics dashboard, this should be fairly static but if it is not working ask eric@heroku.com
 * METRICS_TOKEN is the api key for l2met
-* SPLUNK_TOKEN is the api key to be used for monitoring splunk
+* SPLUNK_TOKEN is the api key to be used for monitoring splunk (get it from the umpire-production app)
 
 
 # Development 
 
 ```
+# FIRST
+bundle install
+
+# Run all tests
+rake test
+
 # Run all monitors locally
 foreman start
 

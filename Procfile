@@ -14,7 +14,6 @@ monitors_l2met_metric: monitors/l2met/metric
 monitors_perf_cpu: monitors/perf/cpu
 monitors_perf_disk: monitors/perf/disk
 monitors_perf_network: monitors/perf/network
-monitors_splunk_ferret_sublime_workspace: monitors/splunk/ferret.sublime-workspace
 monitors_splunk_health: monitors/splunk/health
 monitors_splunk_search: monitors/splunk/search
 monitors_ssh_fingerprint: monitors/ssh/fingerprint
