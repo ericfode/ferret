@@ -26,6 +26,7 @@ namespace :teardown do
   task :services do
 
     bash name: :teardown_services, stdin: <<-'EOF'
+      export $(cat $FERRET_DIR/.env)
       for APP in $(heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1); do
       (
         set -x
@@ -127,7 +128,7 @@ namespace :update do
       EOF
 
       bash name: "update_ssl_endpoint-#{i}", retry:3, stdin: <<-'EOF'    
-        heroku build $FERRET_DIR/services/http -r $APP-cedar-endpoint-$i&
+        heroku build $FERRET_DIR/services/http -r $APP-cedar-endpoint-$i
       EOF
     end
   end
@@ -150,14 +151,15 @@ namespace :util do
 
   task :add_drain do
     bash name: :add_drain, stdin: <<-'EOF'
-         heroku drains:add $L2MET_URL --app $APP
+      export $(cat $FERRET_DIR/.env)
+      heroku drains:add $L2MET_URL --app $APP
     EOF
   end
 
   task :scale do
     bash name: :scale, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
-      $FERRET_DIR/bin/scale monitors 1
+      print `bin/scale monitors 1 $APP`
     EOF
   end
 
@@ -250,7 +252,7 @@ end
 
 namespace :setup do
 
-  task :all => [:test_env,:plugins,:user,"deploy:all","setup:all"]
+  task :all => [:test_env,:plugins,:user,"deploy:all","util:all"]
 
   task :test_env do
     bash name: :test_env, stdin: <<-'EOF'

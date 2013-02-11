@@ -12,6 +12,7 @@ canary Heroku apps.
 ## Environment Setup
 
 Copy env.sample to .env
+
 * APP is the name that you want to prefix your ferret deployment.
 * HEROKU_USERNAME is a unprivileged user that will be deploying ferret. We use an unprivileged user because we deploy the api key to the app and don't want sudo api keys on the platform
 * HEROKU_API_KEY is the api key for the username. You can easily obtain one (if you have sudo) by running ```bin/unprivileged [email address]``` 
@@ -19,12 +20,12 @@ Copy env.sample to .env
 * L2MET_URL can be obtained at [l2met](https://www.l2met.net)
 * METRICS_URL is the prefix for the metrics dashboard, this should be fairly static but if it is not working ask eric@heroku.com
 * METRICS_TOKEN is the api key for l2met
+* SPLUNK_TOKEN is the api key to be used for monitoring splunk
 
 
 # Development 
 
 ```
-
 # Run all monitors locally
 foreman start
 
@@ -40,31 +41,30 @@ foreman run path/to/monitor
 
 ```
 #Set up and run on the platform (the first time)
-bin/setup
+rake setup:all
 
-# Build and release the app if you make any changes
-heroku build -r
-
-# Scale all monitors
-bin/scale [Path to monitors] [How many of each]
 
 #Teardown ferret and all of the service apps
-bin/teardown
+rake teardown:all
 ```
 
 ## Common Tasks
 ```
-# Push changes to ferret
-heroku build -r
+# Build and release the app if you make any changes
+rake update:all
+
+# Only update monitor app
+rake update:monitor
+
+# Only update service apps
+rake update:services
+
+# Only update endpoint apps
+rake update:endpoints
 
 # Scale all monitors
-bin/scale [path to monitors] [how many of each]
+rake util:scale
 
-# Regenerate the profile
-bin/create_proc [path to monitors]
-
-# Get an unprivileged API key
-bin/unprivileged [an email]
 ```
 
 ## Philosophy
