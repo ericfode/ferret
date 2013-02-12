@@ -278,8 +278,8 @@ namespace :setup do
 
   task :all => [:test_env,:plugins,:user,"deploy:all","util:all"]
 
-  task :setup_env do
-    bash name: :test_env, stdin: <<-'EOF'
+  task :test_env do
+    bash name: :setup_test_env, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
       [ -n "$APP" ]             || { echo "error: APP required"; exit 1; }
       [ -n "$HEROKU_API_KEY" ]  || { echo "error: HEROKU_API_KEY required"; exit 1; }
