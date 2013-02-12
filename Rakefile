@@ -204,9 +204,10 @@ namespace :deploy do
         OPTS=$(cat $FERRET_DIR/$s/create.opts 2>/dev/null)
         set -x
         heroku create $SERVICE_APP --org $ORG --remote s $OPTS
-        result=heroku build $FERRET_DIR/$s -r $SERVICE_APP
+        heroku build $FERRET_DIR/$s -r $SERVICE_APP
+        status=$?
         git remote rm s
-        $result
+        $status
       EOF
       ENV["s"] = ""
     end
