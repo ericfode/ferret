@@ -17,7 +17,7 @@ namespace :teardown do
   task :all => [:services,:monitor,:endpoints,:run_app]
 
   task :ask do
-    out =`heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1`
+    out =`export $(cat $FERRET_DIR/.env); heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1`
     puts "tearing down #{out}"
     puts "is that ok (y/n)"
     get_input
