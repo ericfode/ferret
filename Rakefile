@@ -265,7 +265,7 @@ namespace :deploy do
     EOF
   end
 
-  task :addon_app do 
+  task :addons_app do 
     bash name: :deploy_addon_app, retry:3, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
       heroku create $APP-addons --org $ORG
