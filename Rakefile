@@ -92,6 +92,7 @@ namespace :update do
 
   task :procfile do
     bash name: :update_procfile, stdin: <<-'EOF'
+      cd $FERRET_DIR
       $FERRET_DIR/bin/create_proc monitors
     EOF
   end
