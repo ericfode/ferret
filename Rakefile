@@ -46,17 +46,17 @@ namespace :teardown do
     2.times do |i|
       ENV["i"] = i.to_s
 
-      bash name: "teardown_bamboo_endpoint-#{i}", retry:1, stdin: <<-'EOF'    
+      bash name: "teardown_endpoint_bamboo-#{i}", retry:1, stdin: <<-'EOF'    
         export $(cat $FERRET_DIR/.env)
         heroku destroy $APP-bamboo-$i --confirm $APP-bamboo-$i
       EOF
 
-      bash name: "teardown_cedar_endpoint-#{i}", retry:1, stdin: <<-'EOF'      
+      bash name: "teardown_endpoint_cedar-#{i}", retry:1, stdin: <<-'EOF'      
         export $(cat $FERRET_DIR/.env)
         heroku destroy $APP-cedar-$i --confirm $APP-cedar-$i
       EOF
 
-      bash name: "teardown_ssl_endpoint-#{i}", retry:1, stdin: <<-'EOF'    
+      bash name: "teardown_endpoint_ssl-#{i}", retry:1, stdin: <<-'EOF'    
         export $(cat $FERRET_DIR/.env)
         heroku destroy $APP-cedar-endpoint-$i --confirm $APP-cedar-endpoint-$i
       EOF
@@ -106,7 +106,7 @@ namespace :update do
   end
 
   task :monitor => [:procfile,:config] do
-    bash name: :update_monitor_app, retry:3, stdin: <<-'EOF'
+    bash name: :update_monitor, retry:3, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
       heroku build $FERRET_DIR -b https://github.com/nzoschke/buildpack-ferret.git -r $APP
     EOF
@@ -115,7 +115,7 @@ namespace :update do
   task :services do
    Dir.foreach("#{ENV["FERRET_DIR"]}/services") do |file|
     ENV["s"] = file 
-      bash name: "update_service-#{file}", retry:3, stdin: <<-'EOF'
+      bash name: "update_services-#{file}", retry:3, stdin: <<-'EOF'
         export $(cat $FERRET_DIR/.env)
         SERVICE_APP=$APP-$(basename $FERRET_DIR/$s)
         OPTS=$(cat $FERRET_DIR/$s/create.opts 2>/dev/null)
@@ -129,17 +129,17 @@ namespace :update do
     2.times do |i|
       ENV["i"] = i.to_s
 
-      bash name: "update_bamboo_endpoint-#{i}", retry:3, stdin: <<-'EOF'    
+      bash name: "update_endpoint_bamboo-#{i}", retry:3, stdin: <<-'EOF'    
         export $(cat $FERRET_DIR/.env)
         heroku build $FERRET_DIR/services/http -r $APP-bamboo-$i && heroku scale web=2 --app $APP-bamboo-$i
       EOF
 
-      bash name: "update_cedar_endpoint-#{i}", retry:3, stdin: <<-'EOF'      
+      bash name: "update_endpoint_cedar-#{i}", retry:3, stdin: <<-'EOF'      
         export $(cat $FERRET_DIR/.env)
         heroku build $FERRET_DIR/services/http -r $APP-cedar-$i && heroku scale web=2 --app $APP-cedar-$i
       EOF
 
-      bash name: "update_ssl_endpoint-#{i}", retry:3, stdin: <<-'EOF'
+      bash name: "update_endpoint_ssl-#{i}", retry:3, stdin: <<-'EOF'
         export $(cat $FERRET_DIR/.env)    
         heroku build $FERRET_DIR/services/http -r $APP-cedar-endpoint-$i
       EOF
@@ -153,7 +153,7 @@ namespace :util do
   task :all =>[:join_apps,:add_drain,:scale]
 
   task :join_apps do
-    bash name: :join_apps, stdin: <<-'EOF'
+    bash name: :util_join_apps, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
       unset HEROKU_API_KEY
       for APP in $(heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1); do
@@ -163,7 +163,7 @@ namespace :util do
   end
 
   task :add_drain do
-    bash name: :add_drain, stdin: <<-'EOF'
+    bash name: :util_add_drain, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
       unset HEROKU_API_KEY
       heroku drains:add $L2MET_URL --app $APP
@@ -171,7 +171,7 @@ namespace :util do
   end
 
   task :scale do
-    bash name: :scale, stdin: <<-'EOF'
+    bash name: :util_scale, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
       unset HEROKU_API_KEY
       cd $FERRET_DIR
@@ -217,19 +217,19 @@ namespace :deploy do
     3.times do |i|
       ENV["i"] = i.to_s
 
-      bash name: "deploy_bamboo_endpoint-#{i}", retry:3, stdin: <<-'EOF'    
+      bash name: "deploy_endpoint_bamboo-#{i}", retry:3, stdin: <<-'EOF'    
         export $(cat $FERRET_DIR/.env)
         heroku create --org $ORG -s bamboo $APP-bamboo-$i --remote s
         heroku build $FERRET_DIR/services/http -r $APP-bamboo-$i && heroku scale web=2 --app $APP-bamboo-$i
       EOF
 
-      bash name: "deploy_cedar_endpoint-#{i}", retry:3, stdin: <<-'EOF'      
+      bash name: "deploy_endpoint_cedar-#{i}", retry:3, stdin: <<-'EOF'      
         export $(cat $FERRET_DIR/.env)
         heroku create --org $ORG -s cedar $APP-cedar-$i --remote s
         heroku build $FERRET_DIR/services/http -r $APP-cedar-$i && heroku scale web=2 --app $APP-cedar-$i
       EOF
 
-      bash name: "deploy_ssl_endpoint-#{i}", retry:3, stdin: <<-'EOF'    
+      bash name: "deploy_endpoint_ssl-#{i}", retry:3, stdin: <<-'EOF'    
         export $(cat $FERRET_DIR/.env)
         heroku create --org $ORG -s cedar $APP-cedar-endpoint-$i --remote s
         heroku addons:add ssl:endpoint --app $APP-cedar-endpoint-$i
@@ -244,7 +244,7 @@ namespace :deploy do
   end
 
   task :monitor do
-    bash name: :create_monitor_app, retry:3, stdin: <<-'EOF'
+    bash name: :deploy_monitor, retry:3, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
       set -x
       heroku create $APP --org $ORG
@@ -259,14 +259,14 @@ namespace :deploy do
   end
 
   task :run_app do
-    bash name: :create_run_app, retry:3, stdin: <<-'EOF'
+    bash name: :deploy_run_app, retry:3, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
       heroku create $APP-run --org $ORG 
     EOF
   end
 
   task :addon_app do 
-    bash name: :create_addon_app, retry:3, stdin: <<-'EOF'
+    bash name: :deploy_addon_app, retry:3, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
       heroku create $APP-addons --org $ORG
     EOF
@@ -278,7 +278,7 @@ namespace :setup do
 
   task :all => [:test_env,:plugins,:user,"deploy:all","util:all"]
 
-  task :test_env do
+  task :setup_env do
     bash name: :test_env, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
       [ -n "$APP" ]             || { echo "error: APP required"; exit 1; }
@@ -290,7 +290,7 @@ namespace :setup do
   end
 
   task :plugins do
-    bash name: :install_plugins, stdin: <<-'EOF'
+    bash name: :setup_plugins, stdin: <<-'EOF'
       heroku plugins:install https://github.com/ddollar/heroku-anvil
       heroku plugins:install git@github.com:heroku/heroku-orgs.git
     EOF
