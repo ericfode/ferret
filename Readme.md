@@ -14,25 +14,21 @@ canary Heroku apps.
 Copy env.sample to .env
 
 * APP is the name that you want to prefix your ferret deployment.
-* HEROKU_USERNAME is a unprivileged user that will be deploying ferret. We use an unprivileged user because we deploy the api key to the app and don't want sudo api keys on the platform
+* HEROKU_USERNAME is a unprivileged user that will be deploying ferret. We use an unprivileged user because we deploy the api key to the app and don't want sudo api keys on the platform.
 * HEROKU_API_KEY is the api key for the username. You can easily obtain one (if you have sudo) by running ```bin/unprivileged [email address]``` 
 * ORG is the organization that the ferret is deploying to
 * L2MET_URL can be obtained at [l2met](https://www.l2met.net)
 * METRICS_URL is the prefix for the metrics dashboard, this should be fairly static but if it is not working ask eric@heroku.com
 * METRICS_TOKEN is the api key for l2met
-* SPLUNK_TOKEN is the api key to be used for monitoring splunk (get it from the umpire-production app)
-
-
-
+* UMPIRE_API_KEY is the api key for the umpire service. You can obtain it by running ```heroku config --app umpire-production```.
 
 ## Platform Setup and Teardown
 
 ```
-#Set up and run on the platform (the first time)
+# Set up and run on the platform (the first time)
 rake setup:all
 
-
-#Teardown ferret and all of the service apps
+# Teardown ferret and all of the service apps
 rake teardown:all
 ```
 
@@ -52,7 +48,6 @@ rake update:endpoints
 
 # Scale all monitors
 rake util:scale
-
 ```
 
 # Development 
@@ -92,7 +87,7 @@ discoverable, configuration free, and maintenance free:
 * Custom Buildpack (https://github.com/nzoschke/buildpack-ferret)
 * Heroku Toolbelt
 * Dot Profile (dot-profile-d feature)
-* Heroku Manager
+* Heroku Orgs
 * `heroku ps` and `heroku scale`
 * HTTP Log Drains
 * L2Met
