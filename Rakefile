@@ -14,7 +14,7 @@ end
 
 namespace :teardown do
 
-  task :all => [:services,:monitor,:endpoints,:run_app]
+  task :all => [:ask]
 
   task :ask do
     out =`export $(cat $FERRET_DIR/.env); heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1`
@@ -23,8 +23,7 @@ namespace :teardown do
     get_input
   end
 
-  task :services => [:ask] do
-
+  task :services do
     bash name: :teardown_services, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
       for APP in $(heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1); do
@@ -93,12 +92,22 @@ namespace :update do
   task :procfile do
     bash name: :update_procfile, stdin: <<-'EOF'
       cd $FERRET_DIR
-      $FERRET_DIR/bin/create_proc monitors
+      TARGET_FILES=$(find monitors -type f)
+      rm Procfile
+      touch Procfile
+      for f in $TARGET_FILES*
+      do
+          FERRET_NAME=$(echo $f | sed -e 's:\./::' -e 's:[/.-]:_:g')
+          echo "$FERRET_NAME: $f" >> Procfile
+      done
+      echo "web: bundle exec thin start -p \$PORT" >> Procfile
+
     EOF
   end
 
   task :monitor => [:procfile,:config] do
     bash name: :update_monitor_app, retry:3, stdin: <<-'EOF'
+      export $(cat $FERRET_DIR/.env)
       heroku build $FERRET_DIR -b https://github.com/nzoschke/buildpack-ferret.git -r $APP
     EOF
   end
@@ -121,14 +130,17 @@ namespace :update do
       ENV["i"] = i.to_s
 
       bash name: "update_bamboo_endpoint-#{i}", retry:3, stdin: <<-'EOF'    
+        export $(cat $FERRET_DIR/.env)
         heroku build $FERRET_DIR/services/http -r $APP-bamboo-$i && heroku scale web=2 --app $APP-bamboo-$i
       EOF
 
       bash name: "update_cedar_endpoint-#{i}", retry:3, stdin: <<-'EOF'      
+        export $(cat $FERRET_DIR/.env)
         heroku build $FERRET_DIR/services/http -r $APP-cedar-$i && heroku scale web=2 --app $APP-cedar-$i
       EOF
 
-      bash name: "update_ssl_endpoint-#{i}", retry:3, stdin: <<-'EOF'    
+      bash name: "update_ssl_endpoint-#{i}", retry:3, stdin: <<-'EOF'
+        export $(cat $FERRET_DIR/.env)    
         heroku build $FERRET_DIR/services/http -r $APP-cedar-endpoint-$i
       EOF
     end
@@ -153,6 +165,7 @@ namespace :util do
   task :add_drain do
     bash name: :add_drain, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
+      unset HEROKU_API_KEY
       heroku drains:add $L2MET_URL --app $APP
     EOF
   end
@@ -160,8 +173,17 @@ namespace :util do
   task :scale do
     bash name: :scale, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
+      unset HEROKU_API_KEY
       cd $FERRET_DIR
-      print `bin/scale monitors 1 $APP`
+      TARGET_FILES=$(find monitors -type f)
+      SCALE_CMD=""
+      for f in $TARGET_FILES*
+      do
+        FERRET_NAME=$(echo $f | sed -e 's:\./::' -e 's:[/._]:_:g')
+        SCALE_CMD="$SCALE_CMD $FERRET_NAME=1"
+      done
+      echo $SCALE_CMD
+      heroku scale $SCALE_CMD --app $APP
     EOF
   end
 
@@ -173,7 +195,8 @@ namespace :deploy do
   task :all => [:services,:endpoints,:monitor,:run_app]
 
   task :services do
-    Dir.foreach("#{ENV["FERRET_DIR"]}/services") do |file|
+    Dir.chdir("#{ENV["FERRET_DIR"]}/services")
+    Dir["*"].each do |file|
     ENV["s"] = file 
       bash name: "deploy_service-#{file}", retry:3, stdin: <<-'EOF'
         export $(cat $FERRET_DIR/.env)

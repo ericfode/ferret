@@ -23,25 +23,7 @@ Copy env.sample to .env
 * SPLUNK_TOKEN is the api key to be used for monitoring splunk (get it from the umpire-production app)
 
 
-# Development 
 
-```
-# FIRST
-bundle install
-
-# Run all tests
-rake test
-
-# Run all monitors locally
-foreman start
-
-# Run monitors with increased concurrency locally
-foreman start --formation="monitor_git_clone=2"
-
-# Run a single monitor
-foreman run path/to/monitor
-
-```
 
 ## Platform Setup and Teardown
 
@@ -70,6 +52,26 @@ rake update:endpoints
 
 # Scale all monitors
 rake util:scale
+
+```
+
+# Development 
+
+```
+# FIRST
+bundle install
+
+# Run all tests
+rake test
+
+# Run all monitors locally
+foreman start
+
+# Run monitors with increased concurrency locally
+foreman start --formation="monitor_git_clone=2"
+
+# Run a single monitor
+foreman run path/to/monitor
 
 ```
 
