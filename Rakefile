@@ -14,7 +14,7 @@ end
 
 namespace :teardown do
 
-  task :all => [:ask,:services,:monitor,:endpoints,:run_app]
+  task :all => [:services,:monitor,:endpoints,:run_app]
 
   task :ask do
     out =`heroku list --all --org $ORG | grep "^$APP" | cut -d" " -f1`
@@ -23,7 +23,7 @@ namespace :teardown do
     get_input
   end
 
-  task :services do
+  task :services => [:ask] do
 
     bash name: :teardown_services, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
@@ -39,7 +39,7 @@ namespace :teardown do
   task :monitor do
     bash name: :teardown_monitor, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
-      heorku destroy $APP --confirm $APP
+      heroku destroy $APP --confirm $APP
     EOF
   end
 
