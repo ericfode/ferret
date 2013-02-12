@@ -160,6 +160,7 @@ namespace :util do
   task :scale do
     bash name: :scale, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
+      cd $FERRET_DIR
       print `bin/scale monitors 1 $APP`
     EOF
   end
