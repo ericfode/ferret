@@ -7,5 +7,4 @@ run_every_time do
   EOF
 end
 
-
-run time:20
+run time: 20

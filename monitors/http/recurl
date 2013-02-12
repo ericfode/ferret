@@ -8,7 +8,7 @@ run_interval 10 do
 end
 
 run_every_time do
-  bash(name: :curl, timeout: 3900, stdin: <<-'EOSH')
+  bash(name: :curl, timeout: 30, stdin: <<-'EOSH')
     set -x
     curl --fail http://${APP}-http.herokuapp.com -v
   EOSH

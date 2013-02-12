@@ -2,15 +2,15 @@
 require_relative "../../lib/ferret"
 
 run_every_time do
-  bash(name: :curl, timeout: 3900, stdin: <<-'EOSH')
+  bash(name: :curl, timeout: 30, stdin: <<-'EOSH')
     curl --fail http://$APP-cedar-0.herokuapp.com -v
   EOSH
   
-  bash(name: :curl, timeout: 3900, stdin: <<-'EOSH')
+  bash(name: :curl, timeout: 30, stdin: <<-'EOSH')
     curl --fail http://$APP-cedar-1.herokuapp.com -v
   EOSH
 
-  bash(name: :curl, timeout: 3900, stdin: <<-'EOSH')
+  bash(name: :curl, timeout: 30, stdin: <<-'EOSH')
     curl --fail http://$APP-cedar-2.herokuapp.com -v
   EOSH
 end
