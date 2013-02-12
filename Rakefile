@@ -192,7 +192,7 @@ end
 
 namespace :deploy do
   #addons_app is broken so is not included
-  task :all => [:services,:endpoints,:monitor,:run_app]
+  task :all => [:services,:endpoints,:monitor,:run_app,:addons_app]
 
   task :services do
     Dir.chdir("#{ENV["FERRET_DIR"]}/services")
@@ -204,9 +204,10 @@ namespace :deploy do
         OPTS=$(cat $FERRET_DIR/$s/create.opts 2>/dev/null)
         set -x
         heroku create $SERVICE_APP --org $ORG --remote s $OPTS
-        result=heroku build $FERRET_DIR/$s -r $SERVICE_APP
+        heroku build $FERRET_DIR/$s -r $SERVICE_APP
+        status=$?
         git remote rm s
-        $result
+        $status
       EOF
       ENV["s"] = ""
     end
@@ -231,15 +232,13 @@ namespace :deploy do
       bash name: "deploy_ssl_endpoint-#{i}", retry:3, stdin: <<-'EOF'    
         export $(cat $FERRET_DIR/.env)
         heroku create --org $ORG -s cedar $APP-cedar-endpoint-$i --remote s
-        success=heroku build $FERRET_DIR/services/http -r $APP-cedar-endpoint-$i&
         heroku addons:add ssl:endpoint --app $APP-cedar-endpoint-$i
         heroku domains:add www.$APP-cedar-endpoint-${i}.com --app $APP-cedar-endpoint-$i
         openssl genrsa -out server.key 2048 $> /dev/null
         openssl req -new -key server.key -out server.csr -batch -subj "/C=US/ST=CA/O=$ORG_NAME/CN=www.$APP-cedar-endpoint-${i}.com" &> /dev/null
         openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt &> /dev/null
         heroku certs:add server.crt server.key --app $APP-cedar-endpoint-$i 
-        heroku scale web=2 --app $APP-cedar-endpoint-$i
-        $success
+        heroku build $FERRET_DIR/services/http -r $APP-cedar-endpoint-$i && heroku scale web=2 --app $APP-cedar-endpoint-$i
       EOF
     end
   end
