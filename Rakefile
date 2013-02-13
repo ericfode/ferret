@@ -117,9 +117,9 @@ namespace :update do
     ENV["s"] = file 
       bash name: "update_services-#{file}", retry:3, stdin: <<-'EOF'
         export $(cat $FERRET_DIR/.env)
-        SERVICE_APP=$APP-$(basename $FERRET_DIR/$s)
-        OPTS=$(cat $FERRET_DIR/$s/create.opts 2>/dev/null)
-        heroku build $FERRET_DIR/$s -r $SERVICE_APP
+        SERVICE_APP=$APP-$(basename $FERRET_DIR/services/$s)
+        OPTS=$(cat $FERRET_DIR/services/$s/create.opts 2>/dev/null)
+        heroku build $FERRET_DIR/services/$s -r $SERVICE_APP
       EOF
       ENV["s"] = ""
     end
@@ -198,16 +198,14 @@ namespace :deploy do
     Dir.chdir("#{ENV["FERRET_DIR"]}/services")
     Dir["*"].each do |file|
     ENV["s"] = file 
-      bash name: "deploy_service-#{file}", retry:3, stdin: <<-'EOF'
+      bash name: "deploy_service-#{file}", pattern:/0/, retry:3, stdin: <<-'EOF'
         export $(cat $FERRET_DIR/.env)
-        SERVICE_APP=$APP-$(basename $FERRET_DIR/$s)
-        OPTS=$(cat $FERRET_DIR/$s/create.opts 2>/dev/null)
-        set -x
-        heroku create $SERVICE_APP --org $ORG --remote s $OPTS
-        heroku build $FERRET_DIR/$s -r $SERVICE_APP
-        status=$?
-        git remote rm s
-        $status
+        SERVICE_APP=$APP-$(basename $FERRET_DIR/services/$s)
+        OPTS=$(cat $FERRET_DIR/services/$s/create.opts 2>/dev/null)
+        heroku create $SERVICE_APP --org $ORG $OPTS
+        ret=$(heroku build $FERRET_DIR/services/$s -r $SERVICE_APP)
+        heroku scale web=2 --app $SERVICE_APP
+        echo $ret
       EOF
       ENV["s"] = ""
     end
@@ -219,19 +217,19 @@ namespace :deploy do
 
       bash name: "deploy_endpoint_bamboo-#{i}", retry:3, stdin: <<-'EOF'    
         export $(cat $FERRET_DIR/.env)
-        heroku create --org $ORG -s bamboo $APP-bamboo-$i --remote s
+        heroku create --org $ORG -s bamboo $APP-bamboo-$i 
         heroku build $FERRET_DIR/services/http -r $APP-bamboo-$i && heroku scale web=2 --app $APP-bamboo-$i
       EOF
 
       bash name: "deploy_endpoint_cedar-#{i}", retry:3, stdin: <<-'EOF'      
         export $(cat $FERRET_DIR/.env)
-        heroku create --org $ORG -s cedar $APP-cedar-$i --remote s
+        heroku create --org $ORG -s cedar $APP-cedar-$i
         heroku build $FERRET_DIR/services/http -r $APP-cedar-$i && heroku scale web=2 --app $APP-cedar-$i
       EOF
 
       bash name: "deploy_endpoint_ssl-#{i}", retry:3, stdin: <<-'EOF'    
         export $(cat $FERRET_DIR/.env)
-        heroku create --org $ORG -s cedar $APP-cedar-endpoint-$i --remote s
+        heroku create --org $ORG -s cedar $APP-cedar-endpoint-$i
         heroku addons:add ssl:endpoint --app $APP-cedar-endpoint-$i
         heroku domains:add www.$APP-cedar-endpoint-${i}.com --app $APP-cedar-endpoint-$i
         openssl genrsa -out server.key 2048 $> /dev/null

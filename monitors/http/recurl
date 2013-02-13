@@ -4,6 +4,7 @@ require_relative "../../lib/ferret"
 run_interval 10 do 
   bash(name: :consider_restart, timeout: 50, stdin: <<-'EOSH')
     heroku restart --app $APP-http
+    sleep 30
   EOSH
 end
 
