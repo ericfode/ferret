@@ -10,6 +10,7 @@ monitors_http_cedar: monitors/http/cedar
 monitors_http_curl: monitors/http/curl
 monitors_http_endpoint: monitors/http/endpoint
 monitors_http_recurl: monitors/http/recurl
+monitors_http_router: monitors/http/router
 monitors_l2met_health: monitors/l2met/health
 monitors_l2met_metric: monitors/l2met/metric
 monitors_perf_cpu: monitors/perf/cpu

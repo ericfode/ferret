@@ -27,14 +27,11 @@ def run(opts={})
 end
 
 def run_interval(interval, &block)
-  @lock    ||= Mutex.new
   @threads ||= []
   @threads << Thread.new do
     loop do
-      @lock.synchronize do
-        Thread.current[:xid] = SecureRandom.hex(4)
-        block.call
-      end
+      Thread.current[:xid] = SecureRandom.hex(4)
+      block.call
       sleep interval * ENV["FREQ"].to_f
     end
   end

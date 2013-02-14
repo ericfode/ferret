@@ -192,7 +192,7 @@ end
 
 namespace :deploy do
   #addons_app is broken so is not included
-  task :all => [:services,:endpoints,:monitor,:run_app,:addons_app]
+  task :all => [:services,:endpoints,:monitor,:run_app,:addons_app,:slow_http]
 
   task :services do
     Dir.chdir("#{ENV["FERRET_DIR"]}/services")
@@ -270,6 +270,12 @@ namespace :deploy do
     EOF
   end
 
+  task :slow_http do
+    bash name: :deploy_slow_http, retry:3, stdin: <<-'EOF'
+      export $(cat $FERRET_DIR/.env)
+      heroku scale web=10 --app $APP-slow-http
+    EOF
+  end
 end
 
 namespace :setup do
