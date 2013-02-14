@@ -6,8 +6,9 @@ run_every_time do
     heroku addons:add heroku-postgresql:dev -a $APP-addons
   EOF
 
-  bash(name: :remove, pattern: /Removing heroku-postgresql:dev (from|on) #{ENV["APP"]}-addons/, stdin: <<-EOF)
-    heroku addons:remove heroku-postgresql:dev -a $APP-addons --confirm $APP-addons
+  bash(name: :remove, pattern: /Removing .* done/, stdin: <<-EOF)
+    # remove all postgres addons
+    heroku addons --app $APP-addons | grep heroku-postgresql:dev | cut -d" " -f3 | xargs -I {} heroku addons:remove {} --app $APP-addons --confirm $APP-addons
   EOF
 end
 

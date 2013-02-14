@@ -14,11 +14,10 @@ run_every_time do
   EOF
 end
 
-
-  run_every_time do
-    bash(name: :curl, stdin: <<-'EOF')
+run_every_time do
+  bash(name: :curl, stdin: <<-'EOF')
     curl -i -X PUT http://ferretapp.s3.amazonaws.com/perf_network --data-binary @/tmp/o
   EOF
-  end
+end
 
-  run forever: true
+run forever: true
