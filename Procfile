@@ -1,6 +1,7 @@
 monitors_dns_resolve: monitors/dns/resolve
 monitors_ferret_dash: monitors/ferret/dash
-monitors_git_clone: monitors/git/clone
+monitors_git_bamboo: monitors/git/bamboo
+monitors_git_cedar: monitors/git/cedar
 monitors_heroku_addons: monitors/heroku/addons
 monitors_heroku_apps: monitors/heroku/apps
 monitors_heroku_run: monitors/heroku/run
