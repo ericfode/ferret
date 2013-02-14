@@ -1,16 +1,17 @@
 #!/usr/bin/env ruby
 require_relative "../../lib/ferret"
 
-10.times do
+10.times do |set|
   25.times do |i|
     run_every_time do
-      bash(name: :"curl", timeout: 100, stdin: <<-'EOSH')
+      mon = bash(name: :"curl", timeout: 100, stdin: <<-'EOSH')
         curl --fail http://$APP-slow-http.herokuapp.com -v
       EOSH
+      log source: mon.source, val: set*25 + i, measure: "concurrency"
     end
   end
   sleep 60
-  
+
 end
 sleep 60
 
