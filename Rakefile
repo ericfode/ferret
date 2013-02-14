@@ -165,7 +165,6 @@ namespace :util do
   task :add_drain do
     bash name: :util_add_drain, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
-      unset HEROKU_API_KEY
       heroku drains:add $L2MET_URL --app $APP
     EOF
   end
@@ -173,7 +172,6 @@ namespace :util do
   task :scale do
     bash name: :util_scale, stdin: <<-'EOF'
       export $(cat $FERRET_DIR/.env)
-      unset HEROKU_API_KEY
       cd $FERRET_DIR
       TARGET_FILES=$(find monitors -type f)
       SCALE_CMD=""
