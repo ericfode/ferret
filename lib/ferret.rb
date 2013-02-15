@@ -4,9 +4,13 @@ require "timeout"
 require "tmpdir"
 require "./lib/hash"
 require "./lib/script"
+require "td"
 
-
-
+if ENV['TREASURE_DATA_API_KEY']
+  TreasureData::Logger.open('ferret_stage',
+                            :apikey=>ENV['TREASURE_DATA_API_KEY'],
+                            :auto_create_table=>true)
+end
 ENV["NAME"]               ||= File.basename($0, File.extname($0)) # e.g. git_push
 ENV["FERRET_DIR"]         ||= File.expand_path(File.join(__FILE__, "..", ".."))
 ENV["SCRIPT"]             ||= File.expand_path($0) # $FERRET_DIR/tests/git/push or $FERRET_DIR/tests/unit/test_ferret.rb
@@ -81,5 +85,10 @@ def log(data)
     s << [tup.first, tup.last].join("=") << " "
   end
 
+  data[:source] = data[:source].gsub("\"", "")
+
+  if ENV['TREASURE_DATA_API_KEY']
+    TD.event.post(ENV["NAME"], data)
+  end
   $logdevs.each { |l| l << out.strip + "\n" }
 end

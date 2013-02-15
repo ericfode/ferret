@@ -6,3 +6,5 @@ Procfile
 *.key
 *.crt
 *.csr
+env.prod
+env.stage

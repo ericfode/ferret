@@ -98,7 +98,7 @@ namespace :update do
       for f in $TARGET_FILES*
       do
           FERRET_NAME=$(echo $f | sed -e 's:\./::' -e 's:[/.-]:_:g')
-          echo "$FERRET_NAME: $f" >> Procfile
+          echo "$FERRET_NAME: bundle exec $f" >> Procfile
       done
       echo "web: bundle exec thin start -p \$PORT" >> Procfile
 
@@ -215,7 +215,8 @@ namespace :deploy do
 
       bash name: "deploy_endpoint_bamboo-#{i}", retry:3, stdin: <<-'EOF'    
         export $(cat $FERRET_DIR/.env)
-        heroku create --org $ORG -s bamboo $APP-bamboo-$i 
+        heroku create -s bamboo $APP-bamboo-$i
+        heroku transfer $ORG --app $APP-bamboo-$i
         heroku build $FERRET_DIR/services/http -r $APP-bamboo-$i && heroku scale web=2 --app $APP-bamboo-$i
       EOF
 
