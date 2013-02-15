@@ -7,4 +7,8 @@ run_every_time do
   EOF
 end
 
-run time: 20
+sleep 240
+
+bash(name: :restart, stdin: <<-'EOF')
+  heroku restart monitors_dns_resolve -a $APP
+EOF
