@@ -70,6 +70,114 @@ foreman run path/to/monitor
 
 ```
 
+## Tools Ferret provides
+### Ferret.rb
+Ferret.rb makes writing tests scripts simple, for example if you wished to run git clone in your test with retries and a timeout.
+
+```
+require './lib/ferret.rb'
+
+bash name: :clone, timeout:120, trys: 3,  stdin: <<-'EOF'
+	git clone git@github.com/heroku/ferret.git
+EOF
+
+```
+
+This test would also produce logs for failure, success, and the length of time that it took to finish the execution of the script.
+
+Ferret.rb also provides tools for you to repeat blocks of code.
+
+```
+require './lib/ferret.rb'
+run_every_time do
+	bash name: :clone, timeout:120, trys: 3,  stdin: <<-'EOF'
+		git clone git@github.com/heroku/ferret.git
+	EOF
+end
+
+```
+
+If you wished for the same block of code to be run repeatedly simply add `run :forever` to the end of the file.
+
+Running a block of code only once every few iterations of the test is also simple.
+
+```
+# 'monitors/dns/resolve'
+
+require './lib/ferret.rb'
+
+
+run_every_time do
+	bash name: :curl, timeout:120, trys: 3, stdin: <<-'EOF'
+		curl anaddress.amazonaws.com
+	EOF
+end
+
+run_interval 5 do
+	bash name: :restart, timeout:120, trys: 3,	stdin: <<-'EOF'
+		heroku restart monintors_dns_resolve
+	EOF
+end
+```
+This block of code will now run once every five intervals, allowing the run_every_time block(s) to do what ever work they want to first.
+
+The logging format is as follows
+
+```
+app=ferret-tester xid=deadbeef source="dummy.script.test" i=0 at=enter
+app=ferret-tester xid=deadbeef source="dummy.script.test" i=0 status=0 measure=success
+app=ferret-tester xid=deadbeef source="dummy.script.test" i=0 val=100 measure=uptime
+app=ferret-tester xid=deadbeef source="dummy.script.test" i=0 at=return val=X.Y measure=time
+
+```
+`app` is defined by the `APP` env varible. `xid` is a uniquie identifier for each script, `source` is derivied from the path to the test and the name of the script (for example curl in the above scripts).
+
+### Ferret buildpack and environment
+The ferret buildpack provides the dyno with a vendord copy of the heroku client and configures it with the heroku api key in the environment.
+  
+### Deployment tools
+The ferret deployment tools make deploying/updating/deleting fleets of service/monitor apps simple. As well as allowing you to generate procfiles from your monitors directory.
+
+## Ferret.rb
+Ferret.rb makes writing tests scripts simple, for example if you wished to run git clone in your test with retries and a timeout.
+
+```
+require './lib/ferret.rb'
+
+bash name: :clone, timeout:120, trys: 3  stdin: <<-'EOF'
+	git clone git@github.com/heroku/ferret.git
+EOF
+
+```
+
+This test would also produce logs for failure, success, and the length of time that it took to finish the execution of the script.
+
+Ferret.rb also provides tools for you to repeat blocks of code.
+
+```
+require './lib/ferret.rb'
+run_every_time do
+	bash name: :clone, timeout:120, trys: 3  stdin: <<-'EOF'
+		git clone git@github.com/heroku/ferret.git
+	end
+EOF
+
+```
+
+If you wished for the same block of code to be run repeatedly simply add `run :forever` to the end of the file.
+
+Running a block of code only once every few iterations of the test is also simple.
+
+```
+require './lib/ferret.rb'
+run_interval 5 do
+	bash name: :clone, timeout:120, trys: 3  stdin: <<-'EOF'
+		git clone git@github.com/heroku/ferret.git
+	end
+EOF
+
+```
+This block of code will now run once every five intervals.
 ## Philosophy
 
 Ferret is designed to easily apply the canary pattern to Heroku kernel services. Much thought should be given on how to measure properties of services in isolation.

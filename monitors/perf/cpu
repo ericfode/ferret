@@ -2,10 +2,13 @@
 
 require_relative "../../lib/ferret"
 
-run_every_time do
-  bash(name: :blowfish, stdin: <<-'EOF')
-    openssl speed rsa -elapsed -mr
-  EOF
-end
+bash(name: :blowfish, stdin: <<-'EOF')
+  openssl speed rsa -elapsed -mr
+EOF
+
+bash(name: :restart, stdin: <<-'EOF')
+  heroku restart monitors_perf_cpu -a $APP
+EOF
+
 
 run forever:true
